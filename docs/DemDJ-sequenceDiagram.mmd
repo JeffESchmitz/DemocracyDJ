@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Host as HostFeature
+    participant MC as MultipeerClient
+    participant MPActor as MultipeerActor
+    participant Guest as GuestFeature
+
+    Host->>MC: startHosting("Dad's Car")
+    MC->>MPActor: advertise()
+
+    Guest->>MC: startBrowsing("Santiago")
+    MC->>MPActor: browse()
+
+    MPActor-->>MC: peerDiscovered(Peer)
+    MC-->>Guest: event stream
+
+    MPActor-->>MC: peerConnected(Peer)
+    MC-->>Host: event stream
+
+    Host->>MC: send(HostSnapshot, to: nil)
+    MC->>MPActor: broadcast()
+    MPActor-->>Guest: messageReceived(HostSnapshot)
