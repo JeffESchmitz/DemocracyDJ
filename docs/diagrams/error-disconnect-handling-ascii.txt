@@ -1,0 +1,253 @@
+Error & Disconnect Handling
+============================
+
+This documents how the app handles various failure scenarios gracefully.
+
+
+SCENARIO OVERVIEW
+=================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  1. Peer Disconnects     - Guest leaves or loses connection     │
+  │  2. Message Send Fails   - Network hiccup during send           │
+  │  3. Host Leaves          - Driver ends the session              │
+  │  4. Network Lost         - WiFi/Bluetooth goes down             │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+SCENARIO 1: PEER DISCONNECTS
+============================
+
+  MultipeerConnectivity           MultipeerActor              Feature
+         │                              │                        │
+         │  session:peer:               │                        │
+         │  didChangeState:             │                        │
+         │    .notConnected             │                        │
+         ├─────────────────────────────►│                        │
+         │                              │                        │
+         │                    ┌─────────┴─────────┐              │
+         │                    │ peerMap.removeValue│              │
+         │                    │   (forKey: mcPeer) │              │
+         │                    └─────────┬─────────┘              │
+         │                              │                        │
+         │                              │ .peerDisconnected(Peer)│
+         │                              ├───────────────────────►│
+         │                              │                        │
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  IF HANDLING AS HOST:                                          │
+  │  ───────────────────                                           │
+  │                                                                 │
+  │  case .multipeerEvent(.peerDisconnected(let peer)):             │
+  │      state.connectedPeers.remove(id: peer.id)                   │
+  │      return broadcastSnapshot()  // Inform remaining guests    │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  IF HANDLING AS GUEST:                                         │
+  │  ───────────────────                                           │
+  │                                                                 │
+  │  case .multipeerEvent(.peerDisconnected(let peer)):             │
+  │      if peer.id == hostPeerID {                                 │
+  │          // Lost connection to host!                            │
+  │          state.connectionStatus = .reconnecting                 │
+  │          return .run { /* attempt reconnect */ }                │
+  │      }                                                          │
+  │      // Another guest left - will see in next snapshot          │
+  │      return .none                                               │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+SCENARIO 2: MESSAGE SEND FAILS
+==============================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  MultipeerActor                                                 │
+  │  ──────────────                                                 │
+  │                                                                 │
+  │  func send(_ message: MeshMessage, to peer: Peer?) async throws │
+  │      let data = try encoder.encode(message)                     │
+  │                                                                 │
+  │      do {                                                       │
+  │          try session.send(data, toPeers: peers, with: .reliable)│
+  │      } catch {                                                  │
+  │          // Log error but don't crash                           │
+  │          continuation?.yield(.sendFailed(message, error))       │
+  │          throw error                                            │
+  │      }                                                          │
+  │  }                                                              │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  RECOVERY STRATEGY:                                             │
+  │  ──────────────────                                             │
+  │                                                                 │
+  │  For HostSnapshot broadcasts:                                   │
+  │  • Don't retry - next state change will broadcast again         │
+  │  • Guests will eventually sync                                  │
+  │                                                                 │
+  │  For GuestIntent sends:                                         │
+  │  • Keep in pendingVotes                                         │
+  │  • Retry on next user action or reconnect                       │
+  │  • User can tap vote again if needed                            │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+SCENARIO 3: HOST LEAVES SESSION
+===============================
+
+  Host Device                    Guests
+      │                             │
+      │  User taps "End Session"    │
+      │                             │
+      ▼                             │
+  ┌───────────────┐                 │
+  │ AppFeature    │                 │
+  │ .endSession   │                 │
+  └───────┬───────┘                 │
+          │                         │
+          ▼                         │
+  ┌───────────────────┐             │
+  │ multipeerClient   │             │
+  │   .stop()         │             │
+  └───────┬───────────┘             │
+          │                         │
+          ▼                         │
+  ┌───────────────────┐             │
+  │ MCSession         │             │
+  │   .disconnect()   │             │
+  └───────┬───────────┘             │
+          │                         │
+          │    .notConnected        │
+          ├────────────────────────►│
+          │    to all peers         │
+                                    ▼
+                          ┌─────────────────────┐
+                          │ GuestFeature        │
+                          │ .peerDisconnected   │
+                          │   (host)            │
+                          └─────────┬───────────┘
+                                    │
+                                    ▼
+                          ┌─────────────────────┐
+                          │ Show alert:         │
+                          │ "Host ended the     │
+                          │  session"           │
+                          │                     │
+                          │ [Return to Start]   │
+                          └─────────────────────┘
+
+
+SCENARIO 4: NETWORK LOST
+========================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  When WiFi/Bluetooth becomes unavailable:                       │
+  │                                                                 │
+  │  1. MCSession fires .notConnected for each peer                 │
+  │  2. MultipeerActor detects pattern (multiple rapid disconnects) │
+  │  3. Emits .networkUnavailable event                             │
+  │  4. AppFeature shows error banner                               │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  UI Treatment:                                                  │
+  │  ─────────────                                                  │
+  │                                                                 │
+  │  ┌─────────────────────────────────────────────────────────┐    │
+  │  │  ⚠️  Connection Lost                                    │    │
+  │  │                                                         │    │
+  │  │  Trying to reconnect...                                 │    │
+  │  │                                                         │    │
+  │  │  Make sure WiFi or Bluetooth is enabled.                │    │
+  │  └─────────────────────────────────────────────────────────┘    │
+  │                                                                 │
+  │  • Non-blocking banner (user can still see queue)               │
+  │  • Auto-dismiss when connection restored                        │
+  │  • Manual "Retry" button after 10 seconds                       │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+RECONNECTION STRATEGY
+=====================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  Guest Reconnection:                                            │
+  │  ───────────────────                                            │
+  │                                                                 │
+  │  1. Detect host disconnection                                   │
+  │  2. Set connectionStatus = .reconnecting                        │
+  │  3. Re-start browsing for host's service                        │
+  │  4. If found within 30s, auto-reconnect                         │
+  │  5. If timeout, return to mode selection                        │
+  │                                                                 │
+  │  Host Reconnection:                                             │
+  │  ──────────────────                                             │
+  │                                                                 │
+  │  1. Keep advertising (MCAdvertiser stays active)                │
+  │  2. Guests will re-discover and reconnect                       │
+  │  3. On reconnect, broadcast current HostSnapshot                │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+STATE PRESERVATION
+==================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  During brief disconnections, we preserve state:                │
+  │                                                                 │
+  │  HOST:                                                          │
+  │  • Queue and nowPlaying survive disconnection                   │
+  │  • Music keeps playing (local to device)                        │
+  │  • connectedPeers updated as peers reconnect                    │
+  │                                                                 │
+  │  GUEST:                                                         │
+  │  • Last known hostSnapshot preserved                            │
+  │  • pendingVotes retained for retry                              │
+  │  • Shows stale data with "Reconnecting..." indicator            │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+ERROR EVENTS SUMMARY
+====================
+
+  ┌────────────────────────────┬───────────────────────────────────┐
+  │ MultipeerEvent             │ Reducer Handling                  │
+  ├────────────────────────────┼───────────────────────────────────┤
+  │ .peerDisconnected(Peer)    │ Remove from peers, maybe reconnect│
+  │ .sendFailed(Message, Error)│ Log, maybe retry                  │
+  │ .networkUnavailable        │ Show banner, auto-retry           │
+  │ .sessionInvalidated        │ Fatal - return to mode selection  │
+  └────────────────────────────┴───────────────────────────────────┘
+
+
+GRACEFUL DEGRADATION
+====================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  Principle: The show must go on!                                │
+  │                                                                 │
+  │  • Host keeps playing music even if all guests disconnect       │
+  │  • Guests can view last known queue even if disconnected        │
+  │  • Votes are "best effort" - missing one vote isn't critical    │
+  │  • App never crashes due to network issues                      │
+  │                                                                 │
+  │  This is a road trip app - tunnels and dead zones happen!       │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘

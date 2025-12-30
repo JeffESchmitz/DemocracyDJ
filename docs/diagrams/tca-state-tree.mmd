@@ -1,0 +1,52 @@
+%%{init: {'theme': 'dark'}}%%
+flowchart TB
+    subgraph AppFeature["AppFeature (Root Reducer)"]
+        direction TB
+        AppState["State"]
+        AppAction["Action"]
+        AppBody["body: Reduce + Scope"]
+    end
+
+    subgraph AppStateBox["AppFeature.State"]
+        direction LR
+        Mode["mode: Mode"]
+        ModeEnum["enum Mode {\n  .selection\n  .hosting(HostFeature.State)\n  .joining(GuestFeature.State)\n}"]
+    end
+
+    subgraph HostFeature["HostFeature"]
+        direction TB
+        HostState["State"]
+        HostAction["Action"]
+        HostDeps["Dependencies:\n• multipeerClient\n• musicKitClient"]
+    end
+
+    subgraph HostStateBox["HostFeature.State"]
+        NowPlaying["nowPlaying: Song?"]
+        Queue["queue: IdentifiedArrayOf&lt;QueueItem&gt;"]
+        ConnectedPeers["connectedPeers: IdentifiedArrayOf&lt;Peer&gt;"]
+        HostName["displayName: String"]
+    end
+
+    subgraph GuestFeature["GuestFeature"]
+        direction TB
+        GuestState["State"]
+        GuestAction["Action"]
+        GuestDeps["Dependencies:\n• multipeerClient\n(NO musicKitClient!)"]
+    end
+
+    subgraph GuestStateBox["GuestFeature.State"]
+        HostSnapshot["hostSnapshot: HostSnapshot?"]
+        PendingVotes["pendingVotes: Set&lt;String&gt;"]
+        GuestName["displayName: String"]
+        ConnectionStatus["connectionStatus: Status"]
+    end
+
+    AppFeature --> AppStateBox
+    AppStateBox --> HostFeature
+    AppStateBox --> GuestFeature
+    HostFeature --> HostStateBox
+    GuestFeature --> GuestStateBox
+
+    style AppFeature fill:#4a5568,stroke:#a0aec0
+    style HostFeature fill:#2c5282,stroke:#63b3ed
+    style GuestFeature fill:#276749,stroke:#68d391

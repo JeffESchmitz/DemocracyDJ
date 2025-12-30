@@ -1,0 +1,25 @@
+flowchart TD
+  subgraph TCA["TCA Reducers"]
+    Host["HostFeature"]
+    Guest["GuestFeature"]
+  end
+
+  subgraph ClientBox["MultipeerClient"]
+    Client["API:\n• startHosting()\n• startBrowsing()\n• send()\n• stop()\n• events() → AsyncStream"]
+  end
+
+  subgraph ActorBox["MultipeerActor (Concurrency Boundary)"]
+    PeerMap["peerMap: [MCPeerID: Peer]\n(MCPeerID never escapes this actor)"]
+    Session["MCSession"]
+    Advertiser["MCAdvertiser"]
+    Browser["MCBrowser"]
+  end
+
+  Host --> Client
+  Guest --> Client
+
+  Client --> ActorBox
+
+  PeerMap --- Session
+  PeerMap --- Advertiser
+  PeerMap --- Browser

@@ -1,0 +1,179 @@
+TCA State Tree - Democracy DJ
+==============================
+
+This diagram shows how TCA reducers compose to form the app's state tree.
+Based on: docs/CLAUDE_PLAN.md
+
+
+STATE TREE HIERARCHY
+====================
+
+AppFeature.State
+│
+├── mode: Mode
+│   │
+│   ├── .selection
+│   │   └── (no child state)
+│   │
+│   ├── .hosting(HostFeature.State)
+│   │   │
+│   │   ├── displayName: String
+│   │   ├── nowPlaying: Song?
+│   │   ├── queue: IdentifiedArrayOf<QueueItem>
+│   │   └── connectedPeers: IdentifiedArrayOf<Peer>
+│   │
+│   └── .joining(GuestFeature.State)
+│       │
+│       ├── displayName: String
+│       ├── hostSnapshot: HostSnapshot?
+│       ├── pendingVotes: Set<String>
+│       └── connectionStatus: ConnectionStatus
+
+
+REDUCER COMPOSITION
+===================
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        AppFeature                               │
+│                     (Root Reducer)                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  @Reducer                                                       │
+│  struct AppFeature {                                            │
+│      @ObservableState                                           │
+│      struct State {                                             │
+│          var mode: Mode = .selection                            │
+│      }                                                          │
+│                                                                 │
+│      enum Mode {                                                │
+│          case selection                                         │
+│          case hosting(HostFeature.State)                        │
+│          case joining(GuestFeature.State)                       │
+│      }                                                          │
+│                                                                 │
+│      var body: some ReducerOf<Self> {                           │
+│          Reduce { state, action in ... }                        │
+│          .ifCaseLet(\.mode.hosting, action: \.host) {           │
+│              HostFeature()  ◄─── Scoped child reducer           │
+│          }                                                      │
+│          .ifCaseLet(\.mode.joining, action: \.guest) {          │
+│              GuestFeature() ◄─── Scoped child reducer           │
+│          }                                                      │
+│      }                                                          │
+│  }                                                              │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+┌─────────────────────────────┐ ┌─────────────────────────────┐
+│       HostFeature           │ │       GuestFeature          │
+│    (Driver's Reducer)       │ │   (Passenger's Reducer)     │
+├─────────────────────────────┤ ├─────────────────────────────┤
+│                             │ │                             │
+│ Dependencies:               │ │ Dependencies:               │
+│ • multipeerClient ✓         │ │ • multipeerClient ✓         │
+│ • musicKitClient ✓          │ │ • musicKitClient ✗ NEVER!   │
+│                             │ │                             │
+│ Owns:                       │ │ Receives:                   │
+│ • nowPlaying                │ │ • hostSnapshot              │
+│ • queue (source of truth)   │ │                             │
+│ • connectedPeers            │ │ Owns (local only):          │
+│                             │ │ • pendingVotes (optimistic) │
+│ Broadcasts:                 │ │                             │
+│ • HostSnapshot on changes   │ │ Sends:                      │
+│                             │ │ • GuestIntent to host       │
+└─────────────────────────────┘ └─────────────────────────────┘
+
+
+ACTION FLOW
+===========
+
+User taps "Host"              User taps "Join"
+      │                             │
+      ▼                             ▼
+┌─────────────┐             ┌─────────────┐
+│ AppAction   │             │ AppAction   │
+│ .selectMode │             │ .selectMode │
+│   (.host)   │             │   (.guest)  │
+└──────┬──────┘             └──────┬──────┘
+       │                           │
+       ▼                           ▼
+┌─────────────────┐         ┌─────────────────┐
+│ state.mode =    │         │ state.mode =    │
+│   .hosting(     │         │   .joining(     │
+│     HostFeature │         │     GuestFeature│
+│       .State()  │         │       .State()  │
+│   )             │         │   )             │
+└────────┬────────┘         └────────┬────────┘
+         │                           │
+         ▼                           ▼
+   HostFeature                 GuestFeature
+   now handles                 now handles
+   .host actions               .guest actions
+
+
+DEPENDENCY INJECTION
+====================
+
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  @Dependency(\.multipeerClient) var multipeerClient             │
+│  @Dependency(\.musicKitClient) var musicKitClient  // HOST ONLY │
+│                                                                 │
+│  ┌─────────────────┐              ┌─────────────────┐           │
+│  │   HostFeature   │              │  GuestFeature   │           │
+│  ├─────────────────┤              ├─────────────────┤           │
+│  │ multipeerClient │◄────────────►│ multipeerClient │           │
+│  │ musicKitClient  │              │       ✗         │           │
+│  └─────────────────┘              └─────────────────┘           │
+│         │                                                       │
+│         │ MusicKit access                                       │
+│         ▼                                                       │
+│  ┌─────────────────┐                                            │
+│  │ Apple Music API │  Only the Host device plays audio!         │
+│  └─────────────────┘                                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+
+STATE REPLACEMENT (Guest)
+=========================
+
+When Guest receives HostSnapshot:
+
+  Before                              After
+  ──────                              ─────
+
+  GuestFeature.State {                GuestFeature.State {
+    hostSnapshot: <old>       ───►      hostSnapshot: <NEW>  // REPLACED
+    pendingVotes: {"song-1"}            pendingVotes: {}     // CLEARED
+  }                                   }
+
+  Rule: HostSnapshot REPLACES guest state entirely.
+        Optimistic UI (pendingVotes) is discarded.
+
+
+VIEW TREE
+=========
+
+DemocracyDJApp
+└── AppView
+    └── switch store.mode
+        │
+        ├── .selection ──► ModeSelectionView
+        │                   • "Start as Host" button
+        │                   • "Join as Guest" button
+        │
+        ├── .hosting ────► HostView
+        │                   • Now Playing (large)
+        │                   • Up Next queue
+        │                   • Play/Skip controls
+        │                   • Connected peers list
+        │
+        └── .joining ────► GuestView
+                            • Current song (read-only)
+                            • Voting queue
+                            • Add song button
+                            • Vote buttons

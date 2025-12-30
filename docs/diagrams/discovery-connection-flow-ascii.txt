@@ -1,0 +1,144 @@
+Discovery & Connection Flow
+============================
+
+This documents the full peer discovery and session establishment process.
+
+
+PHASE OVERVIEW
+==============
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  1. Host Advertises  →  2. Guest Browses  →  3. Discovery              │
+│  4. Connection Request  →  5. Auto-Accept  →  6. Session Established   │
+│  7. Initial State Sync                                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+DETAILED SEQUENCE
+=================
+
+  Host (Dad)                   Network                    Guest (Santiago)
+      │                           │                            │
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 1: HOST STARTS ADVERTISING                   │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │  startHosting("Dad's Car")│                            │
+      ├──────────────────────────►│                            │
+      │                           │                            │
+      │  MCAdvertiser.start()     │                            │
+      │  service: "democracy-dj"  │                            │
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 2: GUEST STARTS BROWSING                     │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │                           │   startBrowsing("Santiago")│
+      │                           │◄───────────────────────────┤
+      │                           │                            │
+      │                           │       MCBrowser.start()    │
+      │                           │       service: "democracy-dj"
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 3: DISCOVERY                                 │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │                           │  browser:foundPeer:        │
+      │                           ├───────────────────────────►│
+      │                           │                            │
+      │                           │              .peerDiscovered(
+      │                           │                Peer("Dad's Car"))
+      │                           │                            │
+      │                           │              ┌─────────────┤
+      │                           │              │ Show in UI: │
+      │                           │              │ "Dad's Car" │
+      │                           │              └─────────────┤
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 4: CONNECTION REQUEST                        │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │                           │     User taps "Join"       │
+      │                           │◄───────────────────────────┤
+      │                           │                            │
+      │                           │  browser:invitePeer:       │
+      │  didReceiveInvitation     │    toSession:              │
+      │◄──────────────────────────┤                            │
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 5: AUTO-ACCEPT                               │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │  Auto-accept (no prompt)  │                            │
+      │  invitationHandler(true)  │                            │
+      ├──────────────────────────►│                            │
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 6: SESSION ESTABLISHED                       │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │  didChangeState:          │     didChangeState:        │
+      │    .connected             │       .connected           │
+      │◄──────────────────────────┼───────────────────────────►│
+      │                           │                            │
+      │  .peerConnected(          │        .peerConnected(     │
+      │    Peer("Santiago"))      │          Peer("Dad's Car"))│
+      │                           │                            │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │     PHASE 7: INITIAL STATE SYNC                        │
+  ════╪═══════════════════════════╪════════════════════════════╪════════
+      │                           │                            │
+      │  Add to connectedPeers    │                            │
+      │  Broadcast HostSnapshot   │                            │
+      ├──────────────────────────►│                            │
+      │                           │   messageReceived(         │
+      │                           │     HostSnapshot)          │
+      │                           ├───────────────────────────►│
+      │                           │                            │
+      │                           │          Replace state     │
+      │                           │          with snapshot     │
+      │                           │                            │
+      │                           │          ┌─────────────────┤
+      │                           │          │ Ready to vote!  │
+      │                           │          └─────────────────┤
+
+
+SERVICE CONFIGURATION
+=====================
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  Service Type:  "democracy-dj"                                  │
+  │                                                                 │
+  │  Requirements:                                                  │
+  │  • Max 15 characters                                            │
+  │  • Lowercase letters, numbers, hyphens only                     │
+  │  • Must start with letter                                       │
+  │                                                                 │
+  │  Discovery Info:  ["version": "1"]                              │
+  │                                                                 │
+  │  Transport:  WiFi + Bluetooth (automatic fallback)              │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+
+AUTO-ACCEPT POLICY
+==================
+
+  For v1, we auto-accept all connection requests:
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  func advertiser(_ advertiser: MCNearbyServiceAdvertiser,       │
+  │                  didReceiveInvitationFromPeer peerID: MCPeerID, │
+  │                  withContext context: Data?,                    │
+  │                  invitationHandler: @escaping (Bool, MCSession?)│
+  │  ) {                                                            │
+  │      // Auto-accept - it's a family road trip!                  │
+  │      invitationHandler(true, session)                           │
+  │  }                                                              │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Future consideration: PIN-based pairing for public use.

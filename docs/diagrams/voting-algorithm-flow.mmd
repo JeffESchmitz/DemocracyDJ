@@ -1,0 +1,47 @@
+flowchart TD
+    subgraph Guest["Guest Device"]
+        G1[User taps Vote on song]
+        G2[Create GuestIntent.vote<br/>songID: 'song-123']
+        G3[Add to pendingVotes<br/>optimistic UI]
+        G4[Send via MultipeerClient]
+    end
+
+    subgraph Network["Mesh Network"]
+        N1[MeshMessage.intent<br/>JSON encoded]
+    end
+
+    subgraph Host["Host Device (Source of Truth)"]
+        H1[Receive GuestIntent]
+        H2{Is songID in queue?}
+        H3{Is peer in<br/>voters Set?}
+        H4[voters.insert<br/>peer.id]
+        H5[No-op<br/>duplicate vote]
+        H6[Ignore<br/>song not found]
+        H7[Re-sort queue<br/>by voteCount desc]
+        H8[Broadcast<br/>HostSnapshot]
+    end
+
+    subgraph Broadcast["All Guests"]
+        B1[Receive HostSnapshot]
+        B2[Replace local state]
+        B3[Clear pendingVotes]
+        B4[UI reflects truth]
+    end
+
+    G1 --> G2 --> G3 --> G4
+    G4 --> N1
+    N1 --> H1
+    H1 --> H2
+    H2 -->|No| H6
+    H2 -->|Yes| H3
+    H3 -->|Already voted| H5
+    H3 -->|New vote| H4
+    H4 --> H7
+    H5 --> H7
+    H7 --> H8
+    H8 --> B1
+    B1 --> B2 --> B3 --> B4
+
+    style H4 fill:#276749,stroke:#68d391
+    style H5 fill:#744210,stroke:#d69e2e
+    style H6 fill:#742a2a,stroke:#fc8181

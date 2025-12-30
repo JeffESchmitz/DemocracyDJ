@@ -1,0 +1,60 @@
+flowchart TD
+    subgraph Scenarios["Error Scenarios"]
+        S1[Peer Disconnects]
+        S2[Message Send Fails]
+        S3[Host Leaves]
+        S4[Network Lost]
+    end
+
+    subgraph PeerDisconnect["Peer Disconnect Flow"]
+        PD1[MCSession fires<br/>didChangeState: .notConnected]
+        PD2[MultipeerActor<br/>removes from peerMap]
+        PD3[Emit .peerDisconnected<br/>Peer]
+        PD4{Is Host?}
+        PD5[HostFeature:<br/>Remove from connectedPeers]
+        PD6[Broadcast updated<br/>HostSnapshot]
+        PD7[GuestFeature:<br/>Show 'Reconnecting...'<br/>or return to browse]
+    end
+
+    subgraph MessageFail["Message Send Failure"]
+        MF1[MCSession.send throws]
+        MF2[MultipeerActor<br/>catches error]
+        MF3[Emit .sendFailed<br/>message, error]
+        MF4{Critical?}
+        MF5[Retry with<br/>exponential backoff]
+        MF6[Log and continue<br/>next snapshot will sync]
+    end
+
+    subgraph HostLeaves["Host Leaves Session"]
+        HL1[Host taps 'End Session']
+        HL2[HostFeature: stop<br/>MultipeerClient]
+        HL3[MCSession<br/>disconnects all peers]
+        HL4[All Guests receive<br/>.peerDisconnected host]
+        HL5[GuestFeature:<br/>Return to mode selection]
+        HL6[Show 'Host ended<br/>the session']
+    end
+
+    subgraph NetworkLost["Network Lost"]
+        NL1[WiFi/Bluetooth<br/>becomes unavailable]
+        NL2[MCSession fires<br/>multiple .notConnected]
+        NL3[MultipeerClient<br/>emits .networkUnavailable]
+        NL4[AppFeature:<br/>Show error banner]
+        NL5[Auto-retry when<br/>network returns]
+    end
+
+    S1 --> PD1 --> PD2 --> PD3 --> PD4
+    PD4 -->|Handling as Host| PD5 --> PD6
+    PD4 -->|Handling as Guest| PD7
+
+    S2 --> MF1 --> MF2 --> MF3 --> MF4
+    MF4 -->|Yes| MF5
+    MF4 -->|No| MF6
+
+    S3 --> HL1 --> HL2 --> HL3 --> HL4 --> HL5 --> HL6
+
+    S4 --> NL1 --> NL2 --> NL3 --> NL4 --> NL5
+
+    style PD6 fill:#2c5282,stroke:#63b3ed
+    style PD7 fill:#276749,stroke:#68d391
+    style MF5 fill:#744210,stroke:#d69e2e
+    style HL6 fill:#742a2a,stroke:#fc8181

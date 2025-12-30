@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    participant HostApp as Host App
+    participant HostMC as Host MultipeerClient
+    participant Network as Local Network<br/>(WiFi/Bluetooth)
+    participant GuestMC as Guest MultipeerClient
+    participant GuestApp as Guest App
+
+    Note over HostApp,GuestApp: Phase 1: Host Starts Advertising
+
+    HostApp->>HostMC: startHosting("Dad's Car")
+    HostMC->>Network: MCAdvertiser.startAdvertisingPeer()<br/>service: "democracy-dj"
+
+    Note over HostApp,GuestApp: Phase 2: Guest Starts Browsing
+
+    GuestApp->>GuestMC: startBrowsing("Santiago")
+    GuestMC->>Network: MCBrowser.startBrowsingForPeers()<br/>service: "democracy-dj"
+
+    Note over HostApp,GuestApp: Phase 3: Discovery
+
+    Network-->>GuestMC: browser:foundPeer:withDiscoveryInfo:
+    GuestMC-->>GuestApp: .peerDiscovered(Peer)
+    GuestApp->>GuestApp: Show "Dad's Car" in available hosts
+
+    Note over HostApp,GuestApp: Phase 4: Connection Request
+
+    GuestApp->>GuestMC: connect(to: hostPeer)
+    GuestMC->>Network: browser:invitePeer:toSession:
+
+    Note over HostApp,GuestApp: Phase 5: Host Accepts (Auto)
+
+    Network-->>HostMC: advertiser:didReceiveInvitationFromPeer:
+    HostMC->>HostMC: Auto-accept invitation
+    HostMC->>Network: invitationHandler(true, session)
+
+    Note over HostApp,GuestApp: Phase 6: Session Established
+
+    Network-->>HostMC: session:peer:didChangeState:.connected
+    Network-->>GuestMC: session:peer:didChangeState:.connected
+
+    HostMC-->>HostApp: .peerConnected(Peer)
+    GuestMC-->>GuestApp: .peerConnected(Peer)
+
+    Note over HostApp,GuestApp: Phase 7: Initial State Sync
+
+    HostApp->>HostApp: Add peer to connectedPeers
+    HostApp->>HostMC: send(HostSnapshot, to: nil)
+    HostMC->>Network: MCSession.send(to: allPeers)
+    Network-->>GuestMC: session:didReceiveData:fromPeer:
+    GuestMC-->>GuestApp: .messageReceived(HostSnapshot, from: host)
+    GuestApp->>GuestApp: Replace state with snapshot

@@ -1,0 +1,26 @@
+flowchart TB
+    subgraph TCA["TCA Layer"]
+        HF[HostFeature]
+        GF[GuestFeature]
+    end
+
+    subgraph Dependency["Dependency Layer"]
+        MC[MultipeerClient]
+    end
+
+    subgraph Internal["Internal - Never Exposed"]
+        MA[MultipeerActor]
+        MCS[MCSession]
+        ADV[MCAdvertiser]
+        BRW[MCBrowser]
+    end
+
+    HF --> MC
+    GF --> MC
+    MC --> MA
+    MA --> MCS
+    MA --> ADV
+    MA --> BRW
+
+    MA -->|"Peer (sanitized)"| MC
+    MCS -->|"MCPeerID ❌"| MA

@@ -1,0 +1,16 @@
+stateDiagram-v2
+  [*] --> Idle
+
+  Idle --> Hosting: startHosting()
+  Idle --> Browsing: startBrowsing()
+
+  Hosting --> Idle: stop()
+  Browsing --> Idle: stop()
+
+  Hosting --> Hosting: send() / broadcast
+  Browsing --> Browsing: send() / to host
+
+  note right of Idle
+    events() returns an AsyncStream
+    of MultipeerEvent values
+  end note
