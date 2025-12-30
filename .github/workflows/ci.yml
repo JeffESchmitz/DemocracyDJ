@@ -69,8 +69,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-*/SourcePackages
+            ${{ env.DERIVED_DATA_PATH }}/SourcePackages
             ios/.build
+            ~/.swiftpm
+            ~/Library/Caches/org.swift.swiftpm
           key: ${{ runner.os }}-spm-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
