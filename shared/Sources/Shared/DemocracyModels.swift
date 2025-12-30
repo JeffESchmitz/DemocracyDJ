@@ -23,26 +23,35 @@ public struct Song: Identifiable, Equatable, Hashable, Codable, Sendable {
     public let albumArtURL: URL?
     public let duration: TimeInterval
 
-    // Metadata for the "Democracy" logic
-    public var addedBy: Peer
-    public var voteCount: Int
-
     public init(
         id: String,
         title: String,
         artist: String,
         albumArtURL: URL?,
-        duration: TimeInterval,
-        addedBy: Peer,
-        voteCount: Int = 0
+        duration: TimeInterval
     ) {
         self.id = id
         self.title = title
         self.artist = artist
         self.albumArtURL = albumArtURL
         self.duration = duration
+    }
+}
+
+/// The mutable queue state for a song in the session.
+public struct QueueItem: Identifiable, Equatable, Codable, Sendable {
+    public let id: String // Same as song.id for simplicity
+    public let song: Song
+    public let addedBy: Peer
+    public var voters: Set<String> // Peer IDs who have voted
+
+    public var voteCount: Int { voters.count }
+
+    public init(id: String, song: Song, addedBy: Peer, voters: Set<String>) {
+        self.id = id
+        self.song = song
         self.addedBy = addedBy
-        self.voteCount = voteCount
+        self.voters = voters
     }
 }
 
@@ -66,21 +75,16 @@ public enum GuestIntent: Codable, Sendable {
     case suggestSong(Song)
 
     /// "I like this song (or dislike it)."
-    case vote(songID: String, direction: VoteDirection)
-}
-
-public enum VoteDirection: Int, Codable, Sendable {
-    case up = 1
-    case down = -1 // We can disable this if we want "Positive Vibes Only"
+    case vote(songID: String)
 }
 
 /// The "Source of Truth" broadcasted by the Host.
 public struct HostSnapshot: Codable, Sendable {
     public let nowPlaying: Song?
-    public let queue: [Song] // Already sorted by votes
+    public let queue: [QueueItem] // Already sorted by votes
     public let connectedPeers: [Peer]
 
-    public init(nowPlaying: Song?, queue: [Song], connectedPeers: [Peer]) {
+    public init(nowPlaying: Song?, queue: [QueueItem], connectedPeers: [Peer]) {
         self.nowPlaying = nowPlaying
         self.queue = queue
         self.connectedPeers = connectedPeers

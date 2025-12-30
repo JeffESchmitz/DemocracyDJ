@@ -18,9 +18,7 @@ import Testing
         title: "Master of Puppets",
         artist: "Metallica",
         albumArtURL: URL(string: "https://example.com/art.jpg"),
-        duration: 515,
-        addedBy: peer,
-        voteCount: 5
+        duration: 515
     )
 
     let data = try JSONEncoder().encode(song)
@@ -28,7 +26,33 @@ import Testing
 
     #expect(decoded.id == song.id)
     #expect(decoded.title == song.title)
-    #expect(decoded.voteCount == 5)
+    #expect(decoded.artist == song.artist)
+    #expect(decoded.duration == song.duration)
+}
+
+@Test func queueItemEncodesAndDecodes() throws {
+    let peer = Peer(id: "peer-1", name: "Santiago")
+    let song = Song(
+        id: "music-123",
+        title: "Master of Puppets",
+        artist: "Metallica",
+        albumArtURL: URL(string: "https://example.com/art.jpg"),
+        duration: 515
+    )
+    let queueItem = QueueItem(
+        id: song.id,
+        song: song,
+        addedBy: peer,
+        voters: ["peer-1", "peer-2"]
+    )
+
+    let data = try JSONEncoder().encode(queueItem)
+    let decoded = try JSONDecoder().decode(QueueItem.self, from: data)
+
+    #expect(decoded.id == song.id)
+    #expect(decoded.song.title == song.title)
+    #expect(decoded.addedBy.id == peer.id)
+    #expect(decoded.voteCount == 2)
 }
 
 @Test func meshMessageRoundTrips() throws {
@@ -38,8 +62,13 @@ import Testing
         title: "Test Song",
         artist: "Test Artist",
         albumArtURL: nil,
-        duration: 180,
-        addedBy: peer
+        duration: 180
+    )
+    let queueItem = QueueItem(
+        id: song.id,
+        song: song,
+        addedBy: peer,
+        voters: [peer.id]
     )
 
     // Test GuestIntent
@@ -54,19 +83,15 @@ import Testing
     }
 
     // Test HostSnapshot
-    let snapshot = HostSnapshot(nowPlaying: song, queue: [], connectedPeers: [peer])
+    let snapshot = HostSnapshot(nowPlaying: song, queue: [queueItem], connectedPeers: [peer])
     let update = MeshMessage.stateUpdate(snapshot)
     let updateData = try JSONEncoder().encode(update)
     let decodedUpdate = try JSONDecoder().decode(MeshMessage.self, from: updateData)
 
     if case .stateUpdate(let decodedSnapshot) = decodedUpdate {
         #expect(decodedSnapshot.nowPlaying?.title == "Test Song")
+        #expect(decodedSnapshot.queue.first?.voteCount == 1)
     } else {
         Issue.record("Expected .stateUpdate")
     }
-}
-
-@Test func voteDirectionRawValues() {
-    #expect(VoteDirection.up.rawValue == 1)
-    #expect(VoteDirection.down.rawValue == -1)
 }
