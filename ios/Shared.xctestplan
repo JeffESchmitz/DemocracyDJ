@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "4C6E7DED-4726-49FC-AA3D-B81E21ADF2A2",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SharedTests",
+        "name" : "SharedTests"
+      }
+    }
+  ],
+  "version" : 1
+}
