@@ -1,0 +1,485 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		52D09770ADE9BD3F462D6740 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = A5444B95CCD439271AAF0C92 /* Shared */; };
+		5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */; };
+		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
+		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		07BC8D4B02AA0CD17C20C506 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2D8F1C95BD10C7B01CC565DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 11803CCDED5EAD430AF862F1;
+			remoteInfo = DemocracyDJ;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJApp.swift; sourceTree = "<group>"; };
+		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
+		7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DemocracyDJ.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0DD427CDFD1DD35624387B0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */,
+				52D09770ADE9BD3F462D6740 /* Shared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		35833346B846C29BF03DF674 /* DemocracyDJ */ = {
+			isa = PBXGroup;
+			children = (
+				A36C0A12B265779F339267EC /* App */,
+			);
+			path = DemocracyDJ;
+			sourceTree = "<group>";
+		};
+		5F46DC02E77996D15018ED27 = {
+			isa = PBXGroup;
+			children = (
+				35833346B846C29BF03DF674 /* DemocracyDJ */,
+				763E5E192F12D91CD83EF7E7 /* DemocracyDJTests */,
+				79B6A649C68806695A2EAD48 /* Packages */,
+				674F4BC7FE7B7E3A1D3F554C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		674F4BC7FE7B7E3A1D3F554C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */,
+				415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		763E5E192F12D91CD83EF7E7 /* DemocracyDJTests */ = {
+			isa = PBXGroup;
+			children = (
+				A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */,
+			);
+			path = DemocracyDJTests;
+			sourceTree = "<group>";
+		};
+		79B6A649C68806695A2EAD48 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				632BF223B09E2B9022D00F4D /* shared */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		A36C0A12B265779F339267EC /* App */ = {
+			isa = PBXGroup;
+			children = (
+				270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		"TEMP_DEF66560-B3BC-474E-9CF2-A1E1C43FB080" /* Features */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		11803CCDED5EAD430AF862F1 /* DemocracyDJ */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D13F11A6A6AD8A8645D4B50 /* Build configuration list for PBXNativeTarget "DemocracyDJ" */;
+			buildPhases = (
+				4176B7142F973ECCE60B127E /* Sources */,
+				0DD427CDFD1DD35624387B0E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DemocracyDJ;
+			packageProductDependencies = (
+				E129185B905CD5A894646F07 /* ComposableArchitecture */,
+				A5444B95CCD439271AAF0C92 /* Shared */,
+			);
+			productName = DemocracyDJ;
+			productReference = 7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */;
+			productType = "com.apple.product-type.application";
+		};
+		520127662CD1694D077A7589 /* DemocracyDJTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C952F15F8BD1F4D0D0C96CC /* Build configuration list for PBXNativeTarget "DemocracyDJTests" */;
+			buildPhases = (
+				B410D56BE87B2B95BE929BF3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E2B43E8273BCD82A17908B76 /* PBXTargetDependency */,
+			);
+			name = DemocracyDJTests;
+			packageProductDependencies = (
+			);
+			productName = DemocracyDJTests;
+			productReference = 415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2D8F1C95BD10C7B01CC565DA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					11803CCDED5EAD430AF862F1 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 10F82AD90C81057EE8AEEE29 /* Build configuration list for PBXProject "DemocracyDJ" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5F46DC02E77996D15018ED27;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				519D3338DDD06D3574FC56C1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "../shared" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				11803CCDED5EAD430AF862F1 /* DemocracyDJ */,
+				520127662CD1694D077A7589 /* DemocracyDJTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4176B7142F973ECCE60B127E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B410D56BE87B2B95BE929BF3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E2B43E8273BCD82A17908B76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 11803CCDED5EAD430AF862F1 /* DemocracyDJ */;
+			targetProxy = 07BC8D4B02AA0CD17C20C506 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		03BAC2B0BA96333AC4660EC6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		2B43E7F34C25AE275E8CE46D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeffschmitz.DemocracyDJTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DemocracyDJ.app/DemocracyDJ";
+			};
+			name = Debug;
+		};
+		36A613DDCEC93C9095FC6B71 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		4BBEA7B07F2C82CFA46485D8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_GENERATION_MODE = GeneratedFile;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeffschmitz.DemocracyDJ;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AC080DF0F4932D0872CBB9BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeffschmitz.DemocracyDJTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DemocracyDJ.app/DemocracyDJ";
+			};
+			name = Release;
+		};
+		FD64066C2DD2DCDA4CA9906E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_GENERATION_MODE = GeneratedFile;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jeffschmitz.DemocracyDJ;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D13F11A6A6AD8A8645D4B50 /* Build configuration list for PBXNativeTarget "DemocracyDJ" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BBEA7B07F2C82CFA46485D8 /* Debug */,
+				FD64066C2DD2DCDA4CA9906E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		10F82AD90C81057EE8AEEE29 /* Build configuration list for PBXProject "DemocracyDJ" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36A613DDCEC93C9095FC6B71 /* Debug */,
+				03BAC2B0BA96333AC4660EC6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2C952F15F8BD1F4D0D0C96CC /* Build configuration list for PBXNativeTarget "DemocracyDJTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B43E7F34C25AE275E8CE46D /* Debug */,
+				AC080DF0F4932D0872CBB9BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "../shared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../shared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		519D3338DDD06D3574FC56C1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.17.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A5444B95CCD439271AAF0C92 /* Shared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Shared;
+		};
+		E129185B905CD5A894646F07 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 519D3338DDD06D3574FC56C1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 2D8F1C95BD10C7B01CC565DA /* Project object */;
+}
