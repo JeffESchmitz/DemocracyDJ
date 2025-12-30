@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-ios:
+    name: Build iOS
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Resolve SPM dependencies
+        working-directory: ios
+        run: |
+          xcodebuild -project DemocracyDJ.xcodeproj \
+            -scheme DemocracyDJ \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -resolvePackageDependencies
+
+      - name: Build iOS app
+        working-directory: ios
+        run: |
+          xcodebuild -project DemocracyDJ.xcodeproj \
+            -scheme DemocracyDJ \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -skipMacroValidation \
+            build
+
+  test-shared:
+    name: Test Shared Package
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Run Swift tests
+        run: swift test --package-path shared
+
+  lint-web:
+    name: Lint Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+
+      - name: Type check
+        working-directory: web
+        run: npx tsc --noEmit
