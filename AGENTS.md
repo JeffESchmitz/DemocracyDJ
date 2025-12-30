@@ -1,5 +1,16 @@
 # Repository Guidelines
 
+## Branch Safety Rules (CRITICAL)
+
+**NEVER make code changes directly on `main` branch.**
+
+Before making ANY code changes:
+1. Check current branch: `git branch --show-current`
+2. If on `main`, create a new branch IMMEDIATELY: `git checkout -b tm/jeffrey.schmitz2/jdi/{descriptive-name}`
+3. Only then proceed with edits
+
+This rule has NO exceptions. Even small fixes require a branch.
+
 ## Project Structure & Module Organization
 - `ios/` contains the native iOS app (SwiftUI + TCA). Open `ios/DemocracyDJ.xcodeproj` in Xcode.
 - `web/` is the React + TypeScript prototype (Vite + Tailwind). Source lives in `web/src/`, assets in `web/src/assets/`, and static files in `web/public/`.
@@ -27,6 +38,7 @@
 
 ## Commit & Pull Request Guidelines
 - Git history uses Conventional Commits (example: `chore: monorepo scaffold (ios, web, shared)`); follow that format.
+- Branch names should follow the pattern `tm/jeffrey.schmitz2/jdi/<short-description>`.
 - PRs should include a brief summary, the area touched (`ios`, `web`, `shared`), and screenshots for UI changes.
 - Link relevant issues or design docs from `docs/` when applicable.
 
