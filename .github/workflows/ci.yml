@@ -117,8 +117,9 @@ jobs:
 
       - name: Run Swift tests
         run: |
+          set -o pipefail
           if [ "$VERBOSE_BUILD" != "true" ]; then
-            swift test --package-path shared 2>&1 | grep -E "(Test|error|warning|passed|failed)" || true
+            swift test --package-path shared 2>&1 | grep -E "(Test|error|warning|passed|failed|Build complete)"
           else
             swift test --package-path shared
           fi
