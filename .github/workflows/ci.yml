@@ -55,6 +55,8 @@ jobs:
     timeout-minutes: 30
     needs: changes
     if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true'
+    env:
+      DERIVED_DATA_PATH: ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-CI
     steps:
       - uses: actions/checkout@v4
 
@@ -72,6 +74,14 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DERIVED_DATA_PATH }}
+          key: ${{ runner.os }}-deriveddata-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.pbxproj', 'shared/Package.resolved', 'ios/DemocracyDJ/**', 'shared/Sources/**') }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
 
       - name: Install iOS Simulator Runtime
         run: |
@@ -100,6 +110,7 @@ jobs:
             -disable-concurrent-destination-testing \
             -showBuildTimingSummary \
             -skipMacroValidation \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
             COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO
