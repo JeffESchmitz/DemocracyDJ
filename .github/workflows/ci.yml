@@ -81,63 +81,27 @@ jobs:
             xcodebuild -downloadPlatform iOS
           }
 
-      - name: Build iOS app (for testing)
+      - name: Pre-boot Simulator
+        run: |
+          xcrun simctl boot "iPhone 17" || true
+
+      - name: Build and Test iOS
         working-directory: ios
         run: |
           QUIET_FLAG=""
           if [ "$VERBOSE_BUILD" != "true" ]; then
             QUIET_FLAG="-quiet"
           fi
-          xcodebuild $QUIET_FLAG \
+          xcodebuild test $QUIET_FLAG \
             -project DemocracyDJ.xcodeproj \
             -scheme DemocracyDJ \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -disable-concurrent-destination-testing \
             -skipMacroValidation \
+            COMPILER_INDEX_STORE_ENABLE=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            build-for-testing
-
-      - name: Run iOS unit tests
-        working-directory: ios
-        run: |
-          QUIET_FLAG=""
-          if [ "$VERBOSE_BUILD" != "true" ]; then
-            QUIET_FLAG="-quiet"
-          fi
-          xcodebuild $QUIET_FLAG \
-            -project DemocracyDJ.xcodeproj \
-            -scheme DemocracyDJ \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
-            -skipMacroValidation \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            test-without-building
-
-      - name: Run iOS UI tests (non-blocking)
-        working-directory: ios
-        run: |
-          UI_TEST_TARGET=$(xcodebuild -list -project DemocracyDJ.xcodeproj 2>/dev/null | grep -m1 "UITests" | sed -E 's/^[[:space:]]*//' || true)
-          if [ -n "$UI_TEST_TARGET" ]; then
-            echo "Found UI test target: $UI_TEST_TARGET"
-            QUIET_FLAG=""
-            if [ "$VERBOSE_BUILD" != "true" ]; then
-              QUIET_FLAG="-quiet"
-            fi
-            xcodebuild $QUIET_FLAG \
-              -project DemocracyDJ.xcodeproj \
-              -scheme DemocracyDJ \
-              -sdk iphonesimulator \
-              -destination 'platform=iOS Simulator,name=iPhone 17' \
-              -skipMacroValidation \
-              CODE_SIGN_IDENTITY="" \
-              CODE_SIGNING_REQUIRED=NO \
-              -only-testing:"$UI_TEST_TARGET" \
-              test || true
-          else
-            echo "No UI test target found; skipping UI tests."
-          fi
+            CODE_SIGNING_REQUIRED=NO
 
   test-shared:
     name: Test Shared Package
