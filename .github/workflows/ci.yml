@@ -26,14 +26,15 @@ jobs:
   #           CODE_SIGNING_REQUIRED=NO \
   #           build
 
-  test-shared:
-    name: Test Shared Package
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run Swift tests
-        run: swift test --package-path shared
+  # TODO: Enable when GitHub Actions runners support macOS 26 / Xcode 26
+  # test-shared:
+  #   name: Test Shared Package
+  #   runs-on: macos-14
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Run Swift tests
+  #       run: swift test --package-path shared
 
   lint-web:
     name: Lint Web
