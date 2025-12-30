@@ -41,6 +41,7 @@ This rule has NO exceptions. Even small fixes require a branch.
 - Branch names should follow the pattern `tm/jeffrey.schmitz2/jdi/<short-description>`.
 - PRs should include a brief summary, the area touched (`ios`, `web`, `shared`), and screenshots for UI changes.
 - Link relevant issues or design docs from `docs/` when applicable.
+- When editing PR bodies via `gh`, use actual newlines (not `\n`) so Markdown renders correctly.
 
 ## Configuration & Tips
 - The web prototype is meant for fast iteration; avoid deep iOS dependencies in `web/`.

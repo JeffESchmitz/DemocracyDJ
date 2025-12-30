@@ -1,7 +1,9 @@
 # Democracy DJ
 
 **Status:** Prototype (Winter Break 2025)
+
 **Stack:** Swift 6 (iOS), React/TypeScript (Web PoC)
+
 **Architecture:** TCA, Multipeer Connectivity, MusicKit
 
 ## The Problem
