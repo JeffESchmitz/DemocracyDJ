@@ -5,10 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: "Enable verbose logs"
+        required: false
+        default: "false"
 
 env:
   # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
-  VERBOSE_BUILD: 'false'
+  VERBOSE_BUILD: ${{ inputs.verbose || 'false' }}
 
 jobs:
   changes:
