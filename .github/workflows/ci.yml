@@ -21,12 +21,14 @@ jobs:
       - name: Verify Xcode version
         run: xcodebuild -version
 
+      - name: List available SDKs
+        run: xcodebuild -showsdks
+
       - name: Resolve SPM dependencies
         working-directory: ios
         run: |
           xcodebuild -project DemocracyDJ.xcodeproj \
             -scheme DemocracyDJ \
-            -sdk iphoneos \
             -resolvePackageDependencies
 
       - name: Build iOS app
@@ -34,7 +36,8 @@ jobs:
         run: |
           xcodebuild -project DemocracyDJ.xcodeproj \
             -scheme DemocracyDJ \
-            -sdk iphoneos \
+            -sdk iphonesimulator \
+            -arch arm64 \
             -skipMacroValidation \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \

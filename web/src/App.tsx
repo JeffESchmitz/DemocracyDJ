@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Play, Pause, ThumbsUp, Plus, Music, Wifi, User, SkipForward } from 'lucide-react';
 
 // --- Types representing our future Swift Structs ---
@@ -34,10 +34,8 @@ export default function App() {
   const [guestName] = useState('Santiago');
 
   // --- The "Democracy" Logic ---
-  // Re-sort queue whenever votes change
-  useEffect(() => {
-    setQueue(prev => [...prev].sort((a, b) => b.votes - a.votes));
-  }, [JSON.stringify(queue.map(s => s.votes))]); // simplistic dependency for demo
+  // Sort queue by votes (inline, not in effect)
+  const sortedQueue = [...queue].sort((a, b) => b.votes - a.votes);
 
   const handleVote = (songId: string) => {
     setQueue(prev => prev.map(song =>
@@ -95,7 +93,7 @@ export default function App() {
         <div className="h-1/3 bg-gray-800 border-t border-gray-700 p-6 overflow-y-auto">
           <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4 font-bold">Up Next</h3>
           <div className="space-y-3">
-            {queue.map((song, idx) => (
+            {sortedQueue.map((song, idx) => (
               <div key={song.id} className="flex items-center gap-4 p-3 bg-gray-700/50 rounded-lg">
                 <span className="text-xl font-bold text-gray-500 w-6 text-center">{idx + 1}</span>
                 <div className="flex-1">
@@ -130,7 +128,7 @@ export default function App() {
         <div className="flex-1 p-6 overflow-y-auto">
           <h2 className="text-xl font-bold mb-4">Vote to Play Next</h2>
           <div className="space-y-3">
-            {queue.map((song) => (
+            {sortedQueue.map((song) => (
               <div key={song.id} className="flex items-center justify-between p-4 bg-gray-900 border border-gray-800 rounded-xl">
                 <div className="flex items-center gap-3">
                    <div className={`w-12 h-12 ${song.coverColor} rounded-md flex items-center justify-center`}>
