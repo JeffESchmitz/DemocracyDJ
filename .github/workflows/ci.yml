@@ -11,6 +11,18 @@ on:
         description: "Enable verbose logs"
         required: false
         default: "false"
+      force_ios:
+        description: "Force Build iOS to run"
+        required: false
+        default: "false"
+      force_shared:
+        description: "Force Test Shared Package to run"
+        required: false
+        default: "false"
+      force_web:
+        description: "Force Lint Web to run"
+        required: false
+        default: "false"
 
 env:
   # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
@@ -42,7 +54,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     needs: changes
-    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true'
+    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -127,7 +139,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 15
     needs: changes
-    if: needs.changes.outputs.shared == 'true'
+    if: needs.changes.outputs.shared == 'true' || inputs.force_shared == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -161,7 +173,7 @@ jobs:
     name: Lint Web
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.web == 'true'
+    if: needs.changes.outputs.web == 'true' || inputs.force_web == 'true'
     steps:
       - uses: actions/checkout@v4
 
