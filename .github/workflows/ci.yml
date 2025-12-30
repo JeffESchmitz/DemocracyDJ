@@ -10,11 +10,11 @@ on:
       verbose:
         description: "Enable verbose logs"
         required: false
-        default: "false"
+        default: "true"
       force_ios:
         description: "Force Build iOS to run"
         required: false
-        default: "false"
+        default: "true"
       force_shared:
         description: "Force Test Shared Package to run"
         required: false
