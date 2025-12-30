@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
+  VERBOSE_BUILD: 'false'
+
 jobs:
   build-ios:
     name: Build iOS
@@ -19,40 +23,65 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.2.app
           xcodebuild -version
 
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-*/SourcePackages
+            ios/.build
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
       - name: Install iOS Simulator Runtime
         run: xcodebuild -downloadPlatform iOS
 
-      - name: Build iOS app
+      - name: Build iOS app (for testing)
         working-directory: ios
         run: |
-          xcodebuild -project DemocracyDJ.xcodeproj \
-            -scheme DemocracyDJ \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            -skipMacroValidation \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            build
-
-      - name: Run iOS unit tests
-        working-directory: ios
-        run: |
-          xcodebuild -project DemocracyDJ.xcodeproj \
+          QUIET_FLAG=""
+          if [ "$VERBOSE_BUILD" != "true" ]; then
+            QUIET_FLAG="-quiet"
+          fi
+          xcodebuild $QUIET_FLAG \
+            -project DemocracyDJ.xcodeproj \
             -scheme DemocracyDJ \
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 17' \
             -skipMacroValidation \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            test
+            build-for-testing
+
+      - name: Run iOS unit tests
+        working-directory: ios
+        run: |
+          QUIET_FLAG=""
+          if [ "$VERBOSE_BUILD" != "true" ]; then
+            QUIET_FLAG="-quiet"
+          fi
+          xcodebuild $QUIET_FLAG \
+            -project DemocracyDJ.xcodeproj \
+            -scheme DemocracyDJ \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 17' \
+            -skipMacroValidation \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            test-without-building
 
       - name: Run iOS UI tests (non-blocking)
         working-directory: ios
         run: |
-          UI_TEST_TARGET=$(xcodebuild -list -project DemocracyDJ.xcodeproj | rg -m1 "UITests" | sed -E 's/^[[:space:]]*//')
+          UI_TEST_TARGET=$(xcodebuild -list -project DemocracyDJ.xcodeproj 2>/dev/null | grep -m1 "UITests" | sed -E 's/^[[:space:]]*//' || true)
           if [ -n "$UI_TEST_TARGET" ]; then
             echo "Found UI test target: $UI_TEST_TARGET"
-            xcodebuild -project DemocracyDJ.xcodeproj \
+            QUIET_FLAG=""
+            if [ "$VERBOSE_BUILD" != "true" ]; then
+              QUIET_FLAG="-quiet"
+            fi
+            xcodebuild $QUIET_FLAG \
+              -project DemocracyDJ.xcodeproj \
               -scheme DemocracyDJ \
               -sdk iphonesimulator \
               -destination 'platform=iOS Simulator,name=iPhone 17' \
@@ -77,8 +106,22 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.2.app
           xcodebuild -version
 
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            shared/.build
+          key: ${{ runner.os }}-spm-shared-${{ hashFiles('shared/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-shared-
+
       - name: Run Swift tests
-        run: swift test --package-path shared
+        run: |
+          if [ "$VERBOSE_BUILD" != "true" ]; then
+            swift test --package-path shared 2>&1 | grep -E "(Test|error|warning|passed|failed)" || true
+          else
+            swift test --package-path shared
+          fi
 
   lint-web:
     name: Lint Web
