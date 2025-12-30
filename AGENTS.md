@@ -42,6 +42,7 @@ This rule has NO exceptions. Even small fixes require a branch.
 - PRs should include a brief summary, the area touched (`ios`, `web`, `shared`), and screenshots for UI changes.
 - Link relevant issues or design docs from `docs/` when applicable.
 - When editing PR bodies via `gh`, use actual newlines (not `\n`) so Markdown renders correctly.
+- For PR bodies, avoid literal `\n` sequences; use real line breaks with bullets or numbered lists.
 
 ## Configuration & Tips
 - The web prototype is meant for fast iteration; avoid deep iOS dependencies in `web/`.
