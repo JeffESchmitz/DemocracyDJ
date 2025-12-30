@@ -7,52 +7,30 @@ on:
     branches: [main]
 
 jobs:
-  build-ios:
-    name: Build iOS
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select Xcode 16.2
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.2'
-
-      - name: Verify Xcode version
-        run: xcodebuild -version
-
-      - name: List available SDKs
-        run: xcodebuild -showsdks
-
-      - name: Resolve SPM dependencies
-        working-directory: ios
-        run: |
-          xcodebuild -project DemocracyDJ.xcodeproj \
-            -scheme DemocracyDJ \
-            -resolvePackageDependencies
-
-      - name: Build iOS app
-        working-directory: ios
-        run: |
-          xcodebuild -project DemocracyDJ.xcodeproj \
-            -scheme DemocracyDJ \
-            -sdk iphonesimulator \
-            -arch arm64 \
-            -skipMacroValidation \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            build
+  # TODO: Enable when GitHub Actions runners support macOS 26 / Xcode 26
+  # Project uses Xcode project format 77 which requires Xcode 26+
+  # build-ios:
+  #   name: Build iOS
+  #   runs-on: macos-15
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Build iOS app
+  #       working-directory: ios
+  #       run: |
+  #         xcodebuild -project DemocracyDJ.xcodeproj \
+  #           -scheme DemocracyDJ \
+  #           -sdk iphonesimulator \
+  #           -skipMacroValidation \
+  #           CODE_SIGN_IDENTITY="" \
+  #           CODE_SIGNING_REQUIRED=NO \
+  #           build
 
   test-shared:
     name: Test Shared Package
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-
-      - name: Select Xcode 16.2
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '16.2'
 
       - name: Run Swift tests
         run: swift test --package-path shared
