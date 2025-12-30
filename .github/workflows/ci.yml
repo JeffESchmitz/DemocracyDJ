@@ -74,7 +74,12 @@ jobs:
             ${{ runner.os }}-spm-
 
       - name: Install iOS Simulator Runtime
-        run: xcodebuild -downloadPlatform iOS
+        run: |
+          xcodebuild -downloadPlatform iOS || {
+            echo "Retrying simulator runtime download..."
+            sleep 10
+            xcodebuild -downloadPlatform iOS
+          }
 
       - name: Build iOS app (for testing)
         working-directory: ios
