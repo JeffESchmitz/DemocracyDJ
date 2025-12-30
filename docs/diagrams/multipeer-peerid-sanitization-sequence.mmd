@@ -1,0 +1,18 @@
+sequenceDiagram
+  autonumber
+  participant Framework as MultipeerConnectivity
+
+  box MultipeerActor
+    participant MPActor as MultipeerActor
+    participant PeerMap as peerMap
+  end
+
+  participant Client as MultipeerClient
+  participant Reducers as TCA Reducers
+
+  Framework->>MPActor: discovered(MCPeerID)
+  MPActor->>PeerMap: peerMap[mcPeer] = Peer(...)
+  Note over MPActor,PeerMap: MCPeerID is contained inside actor
+
+  MPActor-->>Client: MultipeerEvent.peerDiscovered(Peer)
+  Client-->>Reducers: events() emits .peerDiscovered(Peer)

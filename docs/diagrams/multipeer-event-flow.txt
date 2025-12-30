@@ -1,0 +1,132 @@
+MultipeerConnectivity Event Flow
+=================================
+
+This document maps Apple's raw MultipeerConnectivity delegate callbacks
+to our clean MultipeerEvent types used by TCA reducers.
+
+
+Event Translation Table
+-----------------------
+
+┌────────────────────────────────────────┬─────────────────┬──────────────────────────────────┐
+│ MC Delegate Callback                   │ Raw Data        │ Our Clean Event                  │
+├────────────────────────────────────────┼─────────────────┼──────────────────────────────────┤
+│ browser:foundPeer:withDiscoveryInfo:   │ MCPeerID        │ .peerDiscovered(Peer)            │
+├────────────────────────────────────────┼─────────────────┼──────────────────────────────────┤
+│ session:peer:didChangeState:.connected │ MCPeerID        │ .peerConnected(Peer)             │
+├────────────────────────────────────────┼─────────────────┼──────────────────────────────────┤
+│ session:peer:didChangeState:.notConn.  │ MCPeerID        │ .peerDisconnected(Peer)          │
+├────────────────────────────────────────┼─────────────────┼──────────────────────────────────┤
+│ session:didReceiveData:fromPeer:       │ Data, MCPeerID  │ .messageReceived(MeshMessage,    │
+│                                        │                 │                  from: Peer)     │
+└────────────────────────────────────────┴─────────────────┴──────────────────────────────────┘
+
+
+Why This Matters
+----------------
+
+1. SANITIZATION BOUNDARY
+
+   MCPeerID is Apple's opaque type that:
+   - Cannot be serialized reliably
+   - Cannot be compared across sessions
+   - Is tied to device/session lifetime
+
+   We convert it to our Peer struct at the actor boundary:
+
+   ┌──────────────────┐         ┌──────────────────┐
+   │     MCPeerID     │         │       Peer       │
+   │  (Apple opaque)  │ ──────► │  id: String      │
+   │                  │         │  displayName:    │
+   │  - Not Codable   │         │    String        │
+   │  - Session-bound │         │                  │
+   │  - Device-tied   │         │  - Codable       │
+   └──────────────────┘         │  - Equatable     │
+                                │  - Testable      │
+                                └──────────────────┘
+
+2. TESTABILITY
+
+   TCA reducers only see MultipeerEvent, never raw MC types.
+   Tests can inject fake events without mocking Apple frameworks:
+
+   ┌─────────────────────────────────────────────────────────────┐
+   │  TestStore                                                  │
+   │  ┌─────────────────────────────────────────────────────┐   │
+   │  │  await store.send(.multipeerEvent(                  │   │
+   │  │      .peerConnected(Peer(id: "test", name: "Bob"))  │   │
+   │  │  ))                                                 │   │
+   │  └─────────────────────────────────────────────────────┘   │
+   │                                                             │
+   │  No MCSession, no MCPeerID, no physical devices needed!    │
+   └─────────────────────────────────────────────────────────────┘
+
+3. MESSAGE DECODING
+
+   Raw Data gets decoded to MeshMessage before reaching reducers:
+
+   session:didReceiveData:
+         │
+         ▼
+   ┌─────────────┐     ┌─────────────────┐     ┌────────────────────┐
+   │    Data     │ ──► │  JSONDecoder    │ ──► │    MeshMessage     │
+   │   (bytes)   │     │                 │     │  ┌──────────────┐  │
+   └─────────────┘     └─────────────────┘     │  │HostSnapshot  │  │
+                                               │  │  - or -      │  │
+                                               │  │GuestIntent   │  │
+                                               │  └──────────────┘  │
+                                               └────────────────────┘
+
+
+Complete Event Lifecycle
+------------------------
+
+  Apple Framework              MultipeerActor                 TCA Reducer
+        │                            │                            │
+        │  MCSessionDelegate         │                            │
+        │  .didReceiveData(          │                            │
+        │     data, fromPeer)        │                            │
+        ├───────────────────────────►│                            │
+        │                            │                            │
+        │                   ┌────────┴────────────────┐           │
+        │                   │ 1. Look up Peer from    │           │
+        │                   │    peerMap[mcPeerID]    │           │
+        │                   │                         │           │
+        │                   │ 2. Decode Data to       │           │
+        │                   │    MeshMessage          │           │
+        │                   │                         │           │
+        │                   │ 3. Create clean event   │           │
+        │                   └────────┬────────────────┘           │
+        │                            │                            │
+        │                            │  continuation.yield(       │
+        │                            │    .messageReceived(       │
+        │                            │      message,              │
+        │                            │      from: peer            │
+        │                            │    )                       │
+        │                            │  )                         │
+        │                            ├───────────────────────────►│
+        │                            │                            │
+        │                            │              ┌─────────────┴─────────────┐
+        │                            │              │ case .messageReceived(    │
+        │                            │              │   let msg, let peer):     │
+        │                            │              │                           │
+        │                            │              │   // Pure business logic  │
+        │                            │              │   // No Apple types here  │
+        │                            │              └─────────────┬─────────────┘
+        │                            │                            │
+
+
+Key Architectural Rules
+-----------------------
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │                                                                     │
+  │  RULE 1: MCPeerID NEVER escapes MultipeerActor                     │
+  │                                                                     │
+  │  RULE 2: TCA reducers only receive Peer, MeshMessage, and events   │
+  │                                                                     │
+  │  RULE 3: All encoding/decoding happens inside the actor            │
+  │                                                                     │
+  │  RULE 4: AsyncStream<MultipeerEvent> is the only output channel    │
+  │                                                                     │
+  └─────────────────────────────────────────────────────────────────────┘

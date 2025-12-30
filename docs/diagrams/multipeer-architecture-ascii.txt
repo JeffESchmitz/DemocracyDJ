@@ -1,0 +1,89 @@
+MultipeerClient Architecture - ASCII Diagram
+=============================================
+
+┌─────────────────────────────────────────────────────────────┐
+│                      TCA REDUCERS                           │
+│  ┌─────────────┐                      ┌─────────────┐       │
+│  │ HostFeature │                      │ GuestFeature│       │
+│  └──────┬──────┘                      └──────┬──────┘       │
+└─────────┼────────────────────────────────────┼──────────────┘
+          │                                    │
+          ▼                                    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   MultipeerClient                           │
+│  • startHosting()    • send()                               │
+│  • startBrowsing()   • events() → AsyncStream               │
+│  • stop()                                                   │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   MultipeerActor                            │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │  peerMap: [MCPeerID: Peer]  ← BOUNDARY              │    │
+│  │  MCPeerID NEVER escapes this actor                  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │MCSession │  │MCAdvertiser  │  │MCBrowser     │           │
+│  └──────────┘  └──────────────┘  └──────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+
+
+Data Flow - Host Broadcasting
+=============================
+
+  HostFeature                MultipeerClient              MultipeerActor
+      │                            │                            │
+      │  send(HostSnapshot)        │                            │
+      ├───────────────────────────►│                            │
+      │                            │  broadcast(data)           │
+      │                            ├───────────────────────────►│
+      │                            │                            │
+      │                            │                   ┌────────┴────────┐
+      │                            │                   │ MCSession.send( │
+      │                            │                   │   to: allPeers) │
+      │                            │                   └────────┬────────┘
+      │                            │                            │
+      │                            │                            ▼
+      │                            │                     [All Guests]
+
+
+Data Flow - Guest Voting
+========================
+
+  GuestFeature               MultipeerClient              MultipeerActor
+      │                            │                            │
+      │  send(GuestIntent.vote)    │                            │
+      ├───────────────────────────►│                            │
+      │                            │  send(to: host)            │
+      │                            ├───────────────────────────►│
+      │                            │                            │
+      │                            │                   ┌────────┴────────┐
+      │                            │                   │ MCSession.send( │
+      │                            │                   │   to: hostPeer) │
+      │                            │                   └────────┬────────┘
+      │                            │                            │
+      │                            │                            ▼
+      │                            │                        [Host]
+
+
+Event Flow - MCPeerID Sanitization
+==================================
+
+  MultipeerConnectivity          MultipeerActor              TCA Reducers
+         │                            │                            │
+         │  MCPeerID discovered       │                            │
+         ├───────────────────────────►│                            │
+         │                            │                            │
+         │                   ┌────────┴────────┐                   │
+         │                   │ peerMap[mcPeer] │                   │
+         │                   │   = Peer(...)   │                   │
+         │                   └────────┬────────┘                   │
+         │                            │                            │
+         │                            │  MultipeerEvent            │
+         │                            │  .peerDiscovered(Peer)     │
+         │                            ├───────────────────────────►│
+         │                            │                            │
+         │                            │  ← MCPeerID NEVER crosses  │
+         │                            │     this boundary          │

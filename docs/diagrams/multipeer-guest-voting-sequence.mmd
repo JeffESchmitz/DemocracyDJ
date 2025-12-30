@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant Guest as GuestFeature
+  participant Client as MultipeerClient
+
+  box MultipeerActor
+    participant MPActor as MultipeerActor
+    participant Session as MCSession
+  end
+
+  participant Host as HostFeature
+
+  Guest->>Client: send(GuestIntent.vote)
+  Client->>MPActor: send(to: host)
+  MPActor->>Session: send(to: hostPeer)
+  Session-->>Host: messageReceived(GuestIntent.vote)

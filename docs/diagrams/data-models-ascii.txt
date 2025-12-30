@@ -1,0 +1,158 @@
+Democracy DJ - Data Models
+===========================
+Source: shared/Sources/Shared/DemocracyModels.swift
+
+
+CORE DOMAIN MODELS
+==================
+
+┌─────────────────────────────────────┐
+│              Peer                   │
+│            <<struct>>               │
+├─────────────────────────────────────┤
+│ + id: String      // UUID           │
+│ + name: String    // "Santiago's    │
+│                   //  iPhone"       │
+├─────────────────────────────────────┤
+│ Identifiable, Equatable, Hashable   │
+│ Codable, Sendable                   │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│              Song                   │
+│            <<struct>>               │
+├─────────────────────────────────────┤
+│ + id: String         // MusicKit ID │
+│ + title: String                     │
+│ + artist: String                    │
+│ + albumArtURL: URL?                 │
+│ + duration: TimeInterval            │
+├─────────────────────────────────────┤
+│ Identifiable, Equatable, Hashable   │
+│ Codable, Sendable                   │
+└─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│           QueueItem                 │
+│            <<struct>>               │
+├─────────────────────────────────────┤
+│ + id: String        // = song.id    │
+│ + song: Song                        │
+│ + addedBy: Peer                     │
+│ + voters: Set<String>  // Peer IDs  │
+├─────────────────────────────────────┤
+│ + voteCount: Int { voters.count }   │
+├─────────────────────────────────────┤
+│ Identifiable, Equatable             │
+│ Codable, Sendable                   │
+└─────────────────────────────────────┘
+
+
+WIRE PROTOCOL
+=============
+
+┌─────────────────────────────────────┐
+│          MeshMessage                │
+│            <<enum>>                 │
+├─────────────────────────────────────┤
+│ case intent(GuestIntent)            │
+│      // Guest → Host                │
+│                                     │
+│ case stateUpdate(HostSnapshot)      │
+│      // Host → Guests               │
+├─────────────────────────────────────┤
+│ Codable, Sendable                   │
+└─────────────────────────────────────┘
+
+         ┌──────────┴──────────┐
+         │                     │
+         ▼                     ▼
+
+┌─────────────────────┐  ┌─────────────────────┐
+│    GuestIntent      │  │   HostSnapshot      │
+│      <<enum>>       │  │     <<struct>>      │
+├─────────────────────┤  ├─────────────────────┤
+│ suggestSong(Song)   │  │ nowPlaying: Song?   │
+│ vote(songID: String)│  │ queue: [QueueItem]  │
+├─────────────────────┤  │ connectedPeers:     │
+│ Codable, Sendable   │  │   [Peer]            │
+└─────────────────────┘  ├─────────────────────┤
+                         │ Codable, Sendable   │
+                         └─────────────────────┘
+
+
+RELATIONSHIP DIAGRAM
+====================
+
+                    ┌─────────────┐
+                    │ MeshMessage │
+                    └──────┬──────┘
+                           │ wraps
+              ┌────────────┴────────────┐
+              ▼                         ▼
+       ┌─────────────┐          ┌─────────────┐
+       │ GuestIntent │          │HostSnapshot │
+       └──────┬──────┘          └──────┬──────┘
+              │                        │
+              │ references             │ contains
+              ▼                        │
+        ┌──────────┐                   │
+        │   Song   │◄──────────────────┤ nowPlaying?
+        └──────────┘                   │
+              ▲                        │
+              │ contains               │
+              │                        ▼
+        ┌──────────┐           ┌─────────────┐
+        │QueueItem │◄──────────│   queue[]   │
+        └────┬─────┘           └─────────────┘
+             │                        │
+             │ addedBy                │
+             ▼                        ▼
+        ┌──────────┐           ┌─────────────┐
+        │   Peer   │◄──────────│connectedPeers│
+        └──────────┘           └─────────────┘
+             ▲
+             │
+    voters: Set<Peer.id>
+
+
+DATA FLOW SUMMARY
+=================
+
+  Guest Device                              Host Device
+  ────────────                              ───────────
+
+  ┌──────────────┐                        ┌──────────────┐
+  │ GuestFeature │                        │ HostFeature  │
+  └──────┬───────┘                        └───────┬──────┘
+         │                                        │
+         │ GuestIntent                            │ HostSnapshot
+         │ • suggestSong(Song)                    │ • nowPlaying
+         │ • vote(songID)                         │ • queue[]
+         │                                        │ • connectedPeers[]
+         ▼                                        ▼
+  ┌──────────────────────────────────────────────────────┐
+  │                    MeshMessage                       │
+  │   .intent(GuestIntent)  ──────►  Host processes     │
+  │   .stateUpdate(HostSnapshot) ◄──  Host broadcasts   │
+  └──────────────────────────────────────────────────────┘
+
+
+IDEMPOTENT VOTING
+=================
+
+  QueueItem.voters is Set<String> (Peer IDs)
+
+  ┌─────────────────────────────────────────────────────┐
+  │                                                     │
+  │   Before: voters = {"peer-1", "peer-2"}             │
+  │                                                     │
+  │   Action: peer-2 votes again                        │
+  │                                                     │
+  │   After:  voters = {"peer-1", "peer-2"}  // NO-OP   │
+  │                                                     │
+  │   voteCount = voters.count = 2  (unchanged)         │
+  │                                                     │
+  └─────────────────────────────────────────────────────┘
+
+  Rule: One vote per peer per song. Duplicates are no-ops.

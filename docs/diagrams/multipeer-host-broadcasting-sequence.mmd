@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant Host as HostFeature
+  participant Client as MultipeerClient
+
+  box MultipeerActor
+    participant MPActor as MultipeerActor
+    participant Session as MCSession
+  end
+
+  participant Guests as All Guests
+
+  Host->>Client: send(HostSnapshot)
+  Client->>MPActor: broadcast(data)
+  MPActor->>Session: send(to: allPeers)
+  Session-->>Guests: messageReceived(HostSnapshot)

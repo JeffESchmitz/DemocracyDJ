@@ -1,0 +1,98 @@
+
+classDiagram
+    direction TB
+
+    %% ============================================
+    %% CORE DOMAIN MODELS
+    %% Located in: shared/Sources/Shared/DemocracyModels.swift
+    %% ============================================
+
+    class Peer {
+        <<struct>>
+        +id: String
+        +name: String
+        ---
+        Identifiable
+        Equatable
+        Hashable
+        Codable
+        Sendable
+    }
+
+    class Song {
+        <<struct>>
+        +id: String
+        +title: String
+        +artist: String
+        +albumArtURL: URL?
+        +duration: TimeInterval
+        ---
+        Identifiable
+        Equatable
+        Hashable
+        Codable
+        Sendable
+    }
+
+    class QueueItem {
+        <<struct>>
+        +id: String
+        +song: Song
+        +addedBy: Peer
+        +voters: Set~String~
+        +voteCount: Int
+        ---
+        Identifiable
+        Equatable
+        Codable
+        Sendable
+    }
+
+    %% ============================================
+    %% WIRE PROTOCOL
+    %% ============================================
+
+    class MeshMessage {
+        <<enum>>
+        intent(GuestIntent)
+        stateUpdate(HostSnapshot)
+        ---
+        Codable
+        Sendable
+    }
+
+    class GuestIntent {
+        <<enum>>
+        suggestSong(Song)
+        vote(songID: String)
+        ---
+        Codable
+        Sendable
+    }
+
+    class HostSnapshot {
+        <<struct>>
+        +nowPlaying: Song?
+        +queue: [QueueItem]
+        +connectedPeers: [Peer]
+        ---
+        Codable
+        Sendable
+    }
+
+    %% ============================================
+    %% RELATIONSHIPS
+    %% ============================================
+
+    QueueItem "1" *-- "1" Song : contains
+    QueueItem "1" *-- "1" Peer : addedBy
+    QueueItem "1" o-- "*" Peer : voters (by ID)
+
+    HostSnapshot "1" o-- "0..1" Song : nowPlaying
+    HostSnapshot "1" *-- "*" QueueItem : queue
+    HostSnapshot "1" *-- "*" Peer : connectedPeers
+
+    MeshMessage ..> GuestIntent : wraps
+    MeshMessage ..> HostSnapshot : wraps
+
+    GuestIntent ..> Song : suggestSong case
