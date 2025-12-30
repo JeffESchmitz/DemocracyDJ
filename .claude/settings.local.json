@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(uvx:*)",
+      "Bash(curl:*)",
+      "Bash(sh:*)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(timeout 10 sh:*)",
+      "Bash(PENPOT_API_URL=\"https://design.penpot.app/api\" PENPOT_USERNAME=\"jeffeschmitz@gmail.com\" PENPOT_PASSWORD=\"nakboG-4rosfa-pazxoh\" uvx penpot-mcp:*)",
+      "Bash(pip3 install:*)",
+      "mcp__penpot__list_projects",
+      "Bash(git checkout:*)",
+      "Bash(npm run dev:*)",
+      "Bash(swift build:*)",
+      "Bash(swift test:*)",
+      "Bash(claude --version:*)"
+    ]
+  }
+}

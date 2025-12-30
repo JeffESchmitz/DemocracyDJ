@@ -1,0 +1,88 @@
+import Foundation
+
+// MARK: - The Atoms of Democracy
+
+/// Represents a unique device in the mesh network.
+/// We use a clean struct instead of MCPeerID to keep our logic pure.
+public struct Peer: Identifiable, Equatable, Hashable, Codable, Sendable {
+    public let id: String   // UUID string or stable device ID
+    public let name: String // "Santiago's iPhone"
+
+    public init(id: String = UUID().uuidString, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
+
+/// A Song that can be voted on.
+/// This mirrors the 'Song' type from your React prototype.
+public struct Song: Identifiable, Equatable, Hashable, Codable, Sendable {
+    public let id: String       // Persistent Store ID (MusicKit ID)
+    public let title: String
+    public let artist: String
+    public let albumArtURL: URL?
+    public let duration: TimeInterval
+
+    // Metadata for the "Democracy" logic
+    public var addedBy: Peer
+    public var voteCount: Int
+
+    public init(
+        id: String,
+        title: String,
+        artist: String,
+        albumArtURL: URL?,
+        duration: TimeInterval,
+        addedBy: Peer,
+        voteCount: Int = 0
+    ) {
+        self.id = id
+        self.title = title
+        self.artist = artist
+        self.albumArtURL = albumArtURL
+        self.duration = duration
+        self.addedBy = addedBy
+        self.voteCount = voteCount
+    }
+}
+
+// MARK: - The Wire Protocol
+
+/// The top-level wrapper for all communication over the Mesh Network.
+/// This ensures strict typing when decoding data streams.
+public enum MeshMessage: Codable, Sendable {
+    /// Sent by Guest -> Host
+    /// "I want to do something"
+    case intent(GuestIntent)
+
+    /// Sent by Host -> Guest
+    /// "Here is the new truth"
+    case stateUpdate(HostSnapshot)
+}
+
+/// Actions a Guest can take.
+public enum GuestIntent: Codable, Sendable {
+    /// "I found this song on Apple Music, please add it."
+    case suggestSong(Song)
+
+    /// "I like this song (or dislike it)."
+    case vote(songID: String, direction: VoteDirection)
+}
+
+public enum VoteDirection: Int, Codable, Sendable {
+    case up = 1
+    case down = -1 // We can disable this if we want "Positive Vibes Only"
+}
+
+/// The "Source of Truth" broadcasted by the Host.
+public struct HostSnapshot: Codable, Sendable {
+    public let nowPlaying: Song?
+    public let queue: [Song] // Already sorted by votes
+    public let connectedPeers: [Peer]
+
+    public init(nowPlaying: Song?, queue: [Song], connectedPeers: [Peer]) {
+        self.nowPlaying = nowPlaying
+        self.queue = queue
+        self.connectedPeers = connectedPeers
+    }
+}
