@@ -76,8 +76,10 @@ open ios/DemocracyDJ.xcodeproj   # Open in Xcode
 - Swift 6 strict concurrency
 
 ### Git
-- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`
+- **NEVER commit to `main` directly** — always create a branch first
+- Before ANY code change: `git branch --show-current` → if on `main`, create branch immediately
 - Branch pattern: `tm/jeffrey.schmitz2/jdi/{descriptive-name}`
+- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`
 
 ## Development Phases
 
