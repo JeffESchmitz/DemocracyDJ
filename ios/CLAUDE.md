@@ -93,8 +93,62 @@ Dependencies/
 }
 ```
 
+### Testing with MultipeerClient
+
+#### Unit Test Pattern
+```swift
+@Test func hostReceivesVote() async {
+    // Create mock event stream with continuation for control
+    let (stream, continuation) = AsyncStream.makeStream(of: MultipeerEvent.self)
+
+    let store = TestStore(initialState: HostFeature.State()) {
+        HostFeature()
+    } withDependencies: {
+        $0.multipeerClient = .mock(events: stream)
+    }
+
+    // Simulate peer connection
+    continuation.yield(.peerConnected(Peer(id: "test", name: "Test")))
+
+    // Test reducer behavior...
+}
+```
+
+#### Intercepting Method Calls
+```swift
+@Test func hostStartsAdvertising() async {
+    var didStartHosting = false
+    var hostDisplayName: String?
+
+    let store = TestStore(initialState: HostFeature.State()) {
+        HostFeature()
+    } withDependencies: {
+        $0.multipeerClient = .mock(
+            onStartHosting: { name in
+                didStartHosting = true
+                hostDisplayName = name
+            }
+        )
+    }
+
+    await store.send(.startHosting("My Party"))
+    #expect(didStartHosting)
+    #expect(hostDisplayName == "My Party")
+}
+```
+
 ### Preview Dependencies
-Use `.previewValue` for SwiftUI previews with mock data.
+Use `.previewValue` for SwiftUI previews with mock data. The preview mock automatically emits 3 connected peers.
+
+#### Preview Pattern
+```swift
+#Preview {
+    HostView(store: Store(initialState: .init()) {
+        HostFeature()
+    })
+    // Uses .previewValue automatically - 3 peers connect on appear
+}
+```
 
 ## Build Commands
 

@@ -44,7 +44,7 @@ enum MultipeerEvent: Sendable, Equatable {
 
 extension MultipeerClient: DependencyKey {
     static let liveValue: MultipeerClient = .live
-    static let testValue: MultipeerClient = .mock
+    static let testValue: MultipeerClient = .mock()
     static let previewValue: MultipeerClient = .preview
 }
 
@@ -55,32 +55,67 @@ extension DependencyValues {
     }
 }
 
+// MARK: - Preview Data
+
+/// Preview data scoped to MultipeerClient concerns only.
+/// Song/Queue/HostSnapshot data belongs in HostFeature+PreviewData (Issue #9+).
+enum PreviewData {
+    /// Simulated peers for previews: Diego, Eduardo, Santiago
+    static let peers: [Peer] = [
+        Peer(id: "preview-peer-1", name: "Diego's iPhone"),
+        Peer(id: "preview-peer-2", name: "Eduardo's iPad"),
+        Peer(id: "preview-peer-3", name: "Santiago's iPhone"),
+    ]
+}
+
 // MARK: - Test/Preview Implementations
 
 extension MultipeerClient {
     // Note: `.live` is implemented in MultipeerClient+Live.swift
 
-    /// No-op for unit tests. Never yields events, never finishes.
-    /// Tests needing events should override via withDependencies.
-    static let mock = MultipeerClient(
-        startHosting: { _ in },
-        startBrowsing: { _ in },
-        stop: { },
-        send: { _, _ in },
-        events: {
-            // Never-finishing stream - avoids "stream ended" surprises
-            AsyncStream { _ in }
-        }
-    )
+    /// Configurable mock for unit tests.
+    /// - Parameters:
+    ///   - events: Custom event stream (default: finishes immediately)
+    ///   - onStartHosting: Closure called when startHosting is invoked
+    ///   - onStartBrowsing: Closure called when startBrowsing is invoked
+    ///   - onStop: Closure called when stop is invoked
+    ///   - onSend: Closure called when send is invoked
+    static func mock(
+        events: AsyncStream<MultipeerEvent> = AsyncStream { $0.finish() },
+        onStartHosting: @escaping @Sendable (String) async -> Void = { _ in },
+        onStartBrowsing: @escaping @Sendable (String) async -> Void = { _ in },
+        onStop: @escaping @Sendable () async -> Void = {},
+        onSend: @escaping @Sendable (MeshMessage, Peer?) async throws -> Void = { _, _ in }
+    ) -> Self {
+        MultipeerClient(
+            startHosting: onStartHosting,
+            startBrowsing: onStartBrowsing,
+            stop: onStop,
+            send: onSend,
+            events: { events }
+        )
+    }
 
-    /// For SwiftUI previews. Will be enhanced in "Create Mock MultipeerClient" issue.
-    static let preview = MultipeerClient(
-        startHosting: { _ in },
-        startBrowsing: { _ in },
-        stop: { },
-        send: { _, _ in },
-        events: {
-            AsyncStream { _ in }
-        }
-    )
+    /// Preview mock with 3 simulated connected peers.
+    /// Preview skips discovery phase and emits peers as already connected.
+    static var preview: Self {
+        MultipeerClient(
+            startHosting: { _ in },
+            startBrowsing: { _ in },
+            stop: {},
+            send: { _, _ in },
+            events: {
+                AsyncStream { continuation in
+                    // Preview skips discovery phase - peers appear already connected
+                    Task {
+                        for peer in PreviewData.peers {
+                            continuation.yield(.peerConnected(peer))
+                            try? await Task.sleep(for: .milliseconds(100))
+                        }
+                        // Stream stays open (never finishes)
+                    }
+                }
+            }
+        )
+    }
 }
