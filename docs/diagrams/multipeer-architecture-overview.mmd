@@ -11,8 +11,8 @@ flowchart TD
   subgraph ActorBox["MultipeerActor (Concurrency Boundary)"]
     PeerMap["peerMap: [MCPeerID: Peer]\n(MCPeerID never escapes this actor)"]
     Session["MCSession"]
-    Advertiser["MCAdvertiser"]
-    Browser["MCBrowser"]
+    Advertiser["MCNearbyServiceAdvertiser"]
+    Browser["MCNearbyServiceBrowser"]
   end
 
   Host --> Client

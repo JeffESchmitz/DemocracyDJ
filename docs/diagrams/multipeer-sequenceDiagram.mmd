@@ -5,10 +5,10 @@ sequenceDiagram
     participant Guest as GuestFeature
 
     Host->>MC: startHosting("Dad's Car")
-    MC->>MPActor: advertise()
+    MC->>MPActor: startHosting()
 
     Guest->>MC: startBrowsing("Santiago")
-    MC->>MPActor: browse()
+    MC->>MPActor: startBrowsing()
 
     MPActor-->>MC: peerDiscovered(Peer)
     MC-->>Guest: event stream
@@ -17,5 +17,5 @@ sequenceDiagram
     MC-->>Host: event stream
 
     Host->>MC: send(HostSnapshot, to: nil)
-    MC->>MPActor: broadcast()
+    MC->>MPActor: send(message, to: nil)
     MPActor-->>Guest: messageReceived(HostSnapshot)

@@ -37,7 +37,7 @@ Why This Matters
    ┌──────────────────┐         ┌──────────────────┐
    │     MCPeerID     │         │       Peer       │
    │  (Apple opaque)  │ ──────► │  id: String      │
-   │                  │         │  displayName:    │
+   │                  │         │  name:           │
    │  - Not Codable   │         │    String        │
    │  - Session-bound │         │                  │
    │  - Device-tied   │         │  - Codable       │

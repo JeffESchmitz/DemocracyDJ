@@ -11,8 +11,8 @@
       subgraph Internal["Internal - Never Exposed"]
           MA[MultipeerActor]
           MCS[MCSession]
-          ADV[MCAdvertiser]
-          BRW[MCBrowser]
+          ADV[MCNearbyServiceAdvertiser]
+          BRW[MCNearbyServiceBrowser]
       end
 
       HF --> MC
