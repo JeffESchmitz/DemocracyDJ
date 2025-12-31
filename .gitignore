@@ -250,7 +250,8 @@ playground.xcworkspace
 Carthage/Build/
 
 # Accio dependency management
-Dependencies/
+# Note: We keep ios/DemocracyDJ/Dependencies/ for our TCA dependencies
+/Dependencies/
 .accio/
 
 # fastlane

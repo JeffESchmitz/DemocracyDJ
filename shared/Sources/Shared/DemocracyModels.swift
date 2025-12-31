@@ -59,7 +59,7 @@ public struct QueueItem: Identifiable, Equatable, Codable, Sendable {
 
 /// The top-level wrapper for all communication over the Mesh Network.
 /// This ensures strict typing when decoding data streams.
-public enum MeshMessage: Codable, Sendable {
+public enum MeshMessage: Equatable, Codable, Sendable {
     /// Sent by Guest -> Host
     /// "I want to do something"
     case intent(GuestIntent)
@@ -70,7 +70,7 @@ public enum MeshMessage: Codable, Sendable {
 }
 
 /// Actions a Guest can take.
-public enum GuestIntent: Codable, Sendable {
+public enum GuestIntent: Equatable, Codable, Sendable {
     /// "I found this song on Apple Music, please add it."
     case suggestSong(Song)
 
@@ -79,7 +79,7 @@ public enum GuestIntent: Codable, Sendable {
 }
 
 /// The "Source of Truth" broadcasted by the Host.
-public struct HostSnapshot: Codable, Sendable {
+public struct HostSnapshot: Equatable, Codable, Sendable {
     public let nowPlaying: Song?
     public let queue: [QueueItem] // Already sorted by votes
     public let connectedPeers: [Peer]
