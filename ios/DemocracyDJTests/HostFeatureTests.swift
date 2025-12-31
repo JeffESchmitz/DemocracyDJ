@@ -3,6 +3,7 @@ import Shared
 import Testing
 @testable import DemocracyDJ
 
+@MainActor
 @Suite("HostFeature")
 struct HostFeatureTests {
     @Test func votingIsIdempotent() async {
@@ -134,6 +135,11 @@ struct HostFeatureTests {
 
         let startedName = await recorder.name
         #expect(startedName == host.name)
+
+        await store.send(.stopHosting) {
+            $0.isHosting = false
+        }
+        await store.finish()
     }
 }
 

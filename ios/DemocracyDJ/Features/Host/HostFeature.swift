@@ -59,9 +59,10 @@ struct HostFeature {
             switch action {
             case .startHosting:
                 state.isHosting = true
+                let displayName = state.myPeer.name
                 effects.append(
                     .run { _ in
-                        await multipeerClient.startHosting(state.myPeer.name)
+                        await multipeerClient.startHosting(displayName)
                     }
                 )
                 effects.append(
