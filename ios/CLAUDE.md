@@ -99,7 +99,10 @@ Dependencies/
 ```swift
 @Test func hostReceivesVote() async {
     // Create mock event stream with continuation for control
-    let (stream, continuation) = AsyncStream.makeStream(of: MultipeerEvent.self)
+    var continuation: AsyncStream<MultipeerEvent>.Continuation?
+    let stream = AsyncStream<MultipeerEvent> { streamContinuation in
+        continuation = streamContinuation
+    }
 
     let store = TestStore(initialState: HostFeature.State()) {
         HostFeature()
@@ -108,7 +111,7 @@ Dependencies/
     }
 
     // Simulate peer connection
-    continuation.yield(.peerConnected(Peer(id: "test", name: "Test")))
+    continuation?.yield(.peerConnected(Peer(id: "test", name: "Test")))
 
     // Test reducer behavior...
 }
