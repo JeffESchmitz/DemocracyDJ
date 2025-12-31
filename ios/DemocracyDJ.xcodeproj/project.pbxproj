@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -11,6 +11,7 @@
 		5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */; };
 		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
 		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
+		C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +29,7 @@
 		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
 		7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DemocracyDJ.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A827F4222F040B1200A011CA /* Shared.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = Shared.xctestplan; sourceTree = "<group>"; };
+		82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerClient.swift; sourceTree = "<group>"; };
 		A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -49,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				A36C0A12B265779F339267EC /* App */,
+				9821EA7F469BAA8A8F9772A8 /* Dependencies */,
 			);
 			path = DemocracyDJ;
 			sourceTree = "<group>";
@@ -56,7 +58,6 @@
 		5F46DC02E77996D15018ED27 = {
 			isa = PBXGroup;
 			children = (
-				A827F4222F040B1200A011CA /* Shared.xctestplan */,
 				35833346B846C29BF03DF674 /* DemocracyDJ */,
 				763E5E192F12D91CD83EF7E7 /* DemocracyDJTests */,
 				79B6A649C68806695A2EAD48 /* Packages */,
@@ -89,12 +90,27 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		9821EA7F469BAA8A8F9772A8 /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */,
+			);
+			path = Dependencies;
+			sourceTree = "<group>";
+		};
 		A36C0A12B265779F339267EC /* App */ = {
 			isa = PBXGroup;
 			children = (
 				270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		"TEMP_8FF7ADB2-E0DE-4490-981C-D67F7BE0D70B" /* Features */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Features;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -167,6 +183,7 @@
 				519D3338DDD06D3574FC56C1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 				87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "../shared" */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -182,6 +199,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */,
+				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

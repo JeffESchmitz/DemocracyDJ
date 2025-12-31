@@ -58,3 +58,22 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: DemocracyDJ
+
+schemes:
+  DemocracyDJ:
+    build:
+      targets:
+        DemocracyDJ: all
+        DemocracyDJTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - DemocracyDJTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
