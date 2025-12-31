@@ -27,7 +27,7 @@ DETAILED SEQUENCE
       │  startHosting("Dad's Car")│                            │
       ├──────────────────────────►│                            │
       │                           │                            │
-      │  MCAdvertiser.start()     │                            │
+      │  MCNearbyServiceAdvertiser.start()     │                            │
       │  service: "democracy-dj"  │                            │
       │                           │                            │
   ════╪═══════════════════════════╪════════════════════════════╪════════
@@ -37,7 +37,7 @@ DETAILED SEQUENCE
       │                           │   startBrowsing("Santiago")│
       │                           │◄───────────────────────────┤
       │                           │                            │
-      │                           │       MCBrowser.start()    │
+      │                           │       MCNearbyServiceBrowser.start()    │
       │                           │       service: "democracy-dj"
       │                           │                            │
   ════╪═══════════════════════════╪════════════════════════════╪════════
@@ -59,7 +59,8 @@ DETAILED SEQUENCE
       │     PHASE 4: CONNECTION REQUEST                        │
   ════╪═══════════════════════════╪════════════════════════════╪════════
       │                           │                            │
-      │                           │     User taps "Join"       │
+      │                           │   Auto-invite discovered   │
+      │                           │           host             │
       │                           │◄───────────────────────────┤
       │                           │                            │
       │                           │  browser:invitePeer:       │

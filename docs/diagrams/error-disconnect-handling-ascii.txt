@@ -196,7 +196,7 @@ RECONNECTION STRATEGY
   │  Host Reconnection:                                             │
   │  ──────────────────                                             │
   │                                                                 │
-  │  1. Keep advertising (MCAdvertiser stays active)                │
+  │  1. Keep advertising (MCNearbyServiceAdvertiser stays active)                │
   │  2. Guests will re-discover and reconnect                       │
   │  3. On reconnect, broadcast current HostSnapshot                │
   │                                                                 │

@@ -1,4 +1,3 @@
-%%{init: {'theme': 'dark'}}%%
 flowchart TB
     subgraph AppFeature["AppFeature (Root Reducer)"]
         direction TB
@@ -10,14 +9,20 @@ flowchart TB
     subgraph AppStateBox["AppFeature.State"]
         direction LR
         Mode["mode: Mode"]
-        ModeEnum["enum Mode {\n  .selection\n  .hosting(HostFeature.State)\n  .joining(GuestFeature.State)\n}"]
+        ModeEnum["enum Mode {
+            .selection
+            .hosting(HostFeature.State)
+            .joining(GuestFeature.State)
+            }"]
     end
 
     subgraph HostFeature["HostFeature"]
         direction TB
         HostState["State"]
         HostAction["Action"]
-        HostDeps["Dependencies:\n• multipeerClient\n• musicKitClient"]
+        HostDeps["Dependencies:
+        • multipeerClient
+        • musicKitClient"]
     end
 
     subgraph HostStateBox["HostFeature.State"]
@@ -31,7 +36,9 @@ flowchart TB
         direction TB
         GuestState["State"]
         GuestAction["Action"]
-        GuestDeps["Dependencies:\n• multipeerClient\n(NO musicKitClient!)"]
+        GuestDeps["Dependencies:
+            • multipeerClient 
+            (NO musicKitClient!)"]
     end
 
     subgraph GuestStateBox["GuestFeature.State"]
