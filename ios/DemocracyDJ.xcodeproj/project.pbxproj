@@ -11,6 +11,7 @@
 		5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */; };
 		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
 		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
+		BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */; };
 		C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */; };
 /* End PBXBuildFile section */
 
@@ -28,9 +29,11 @@
 		270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJApp.swift; sourceTree = "<group>"; };
 		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
+		665D74033AE5AC105B0C44DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DemocracyDJ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerClient.swift; sourceTree = "<group>"; };
 		A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJTests.swift; sourceTree = "<group>"; };
+		F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MultipeerClient+Live.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,6 +52,7 @@
 		35833346B846C29BF03DF674 /* DemocracyDJ */ = {
 			isa = PBXGroup;
 			children = (
+				665D74033AE5AC105B0C44DB /* Info.plist */,
 				A36C0A12B265779F339267EC /* App */,
 				9821EA7F469BAA8A8F9772A8 /* Dependencies */,
 			);
@@ -94,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */,
+				F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */,
 			);
 			path = Dependencies;
 			sourceTree = "<group>";
@@ -106,7 +111,7 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		"TEMP_8FF7ADB2-E0DE-4490-981C-D67F7BE0D70B" /* Features */ = {
+		"TEMP_5FEA992A-DA98-4646-8AC9-67B4AF1333CA" /* Features */ = {
 			isa = PBXGroup;
 			children = (
 			);
@@ -199,6 +204,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */,
+				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -370,13 +376,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_GENERATION_MODE = GeneratedFile;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_FILE = DemocracyDJ/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -413,13 +413,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_GENERATION_MODE = GeneratedFile;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_FILE = DemocracyDJ/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
