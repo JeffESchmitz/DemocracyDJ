@@ -14,7 +14,7 @@ on:
       force_ios:
         description: "Force Build iOS to run"
         required: false
-        default: "true"
+        default: "false"
       force_shared:
         description: "Force Test Shared Package to run"
         required: false
