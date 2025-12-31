@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "B9AA1C1C-1F0E-41E5-9C4C-0B1E3A1A5D86",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:DemocracyDJ.xcodeproj",
+        "identifier" : "520127662CD1694D077A7589",
+        "name" : "DemocracyDJTests"
+      }
+    }
+  ],
+  "version" : 1
+}

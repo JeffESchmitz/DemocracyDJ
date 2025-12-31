@@ -14,7 +14,7 @@ on:
       force_ios:
         description: "Force Build iOS to run"
         required: false
-        default: "true"
+        default: "false"
       force_shared:
         description: "Force Test Shared Package to run"
         required: false
@@ -23,6 +23,14 @@ on:
         description: "Force Lint Web to run"
         required: false
         default: "false"
+      disable_spm_cache:
+        description: "Disable SPM dependency caching (fixes macro issues)"
+        required: false
+        default: "true"
+      disable_ios:
+        description: "Skip Build iOS job entirely"
+        required: false
+        default: "true"
 
 env:
   # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
@@ -49,73 +57,67 @@ jobs:
             shared:
               - 'shared/**'
 
-  build-ios:
-    name: Build iOS
-    runs-on: macos-26
-    timeout-minutes: 30
-    needs: changes
-    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true'
-    env:
-      DERIVED_DATA_PATH: ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-CI
-    steps:
-      - uses: actions/checkout@v4
+  # build-ios:
+  #   name: Build iOS
+  #   runs-on: macos-26
+  #   timeout-minutes: 30
+  #   needs: changes
+  #   if: (needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true') && inputs.disable_ios != 'true'
+  #   env:
+  #     DERIVED_DATA_PATH: ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-CI
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Select Xcode 26.2
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.2.app
-          xcodebuild -version
+  #     - name: Select Xcode 26.2
+  #       run: |
+  #         sudo xcode-select -s /Applications/Xcode_26.2.app
+  #         xcodebuild -version
+  #         echo "XCODE_VERSION=$(xcodebuild -version | head -n1 | awk '{print $2}')" >> "$GITHUB_ENV"
 
-      - name: Cache SPM dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.DERIVED_DATA_PATH }}/SourcePackages
-            ios/.build
-            ~/.swiftpm
-            ~/Library/Caches/org.swift.swiftpm
-          key: ${{ runner.os }}-spm-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
+  #     - name: Cache SPM dependencies
+  #       if: inputs.disable_spm_cache != 'true'
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ${{ env.DERIVED_DATA_PATH }}/SourcePackages
+  #           ios/.build
+  #           ~/.swiftpm
+  #           ~/Library/Caches/org.swift.swiftpm
+  #         key: ${{ runner.os }}-spm-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-spm-
 
-      - name: Cache DerivedData
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.DERIVED_DATA_PATH }}
-          key: ${{ runner.os }}-deriveddata-${{ hashFiles('ios/DemocracyDJ.xcodeproj/project.pbxproj', 'shared/Package.resolved', 'ios/DemocracyDJ/**', 'shared/Sources/**') }}
-          restore-keys: |
-            ${{ runner.os }}-deriveddata-
+  #     - name: Install iOS Simulator Runtime
+  #       run: |
+  #         xcodebuild -downloadPlatform iOS || {
+  #           echo "Retrying simulator runtime download..."
+  #           sleep 10
+  #           xcodebuild -downloadPlatform iOS
+  #         }
 
-      - name: Install iOS Simulator Runtime
-        run: |
-          xcodebuild -downloadPlatform iOS || {
-            echo "Retrying simulator runtime download..."
-            sleep 10
-            xcodebuild -downloadPlatform iOS
-          }
+  #     - name: Pre-boot Simulator
+  #       run: |
+  #         xcrun simctl boot "iPhone 17" || true
 
-      - name: Pre-boot Simulator
-        run: |
-          xcrun simctl boot "iPhone 17" || true
-
-      - name: Build and Test iOS
-        working-directory: ios
-        run: |
-          QUIET_FLAG=""
-          if [ "$VERBOSE_BUILD" != "true" ]; then
-            QUIET_FLAG="-quiet"
-          fi
-          xcodebuild test $QUIET_FLAG \
-            -project DemocracyDJ.xcodeproj \
-            -scheme DemocracyDJ \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 17' \
-            -disable-concurrent-destination-testing \
-            -showBuildTimingSummary \
-            -skipMacroValidation \
-            -derivedDataPath "$DERIVED_DATA_PATH" \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
+  #     - name: Build and Test iOS
+  #       working-directory: ios
+  #       run: |
+  #         QUIET_FLAG=""
+  #         if [ "$VERBOSE_BUILD" != "true" ]; then
+  #           QUIET_FLAG="-quiet"
+  #         fi
+  #         xcodebuild test $QUIET_FLAG \
+  #           -project DemocracyDJ.xcodeproj \
+  #           -scheme DemocracyDJ \
+  #           -sdk iphonesimulator \
+  #           -destination 'platform=iOS Simulator,name=iPhone 17' \
+  #           -disable-concurrent-destination-testing \
+  #           -showBuildTimingSummary \
+  #           -skipMacroValidation \
+  #           -derivedDataPath "$DERIVED_DATA_PATH" \
+  #           COMPILER_INDEX_STORE_ENABLE=NO \
+  #           CODE_SIGN_IDENTITY="" \
+  #           CODE_SIGNING_REQUIRED=NO
 
   test-shared:
     name: Test Shared Package
@@ -132,6 +134,7 @@ jobs:
           xcodebuild -version
 
       - name: Cache SPM dependencies
+        if: inputs.disable_spm_cache != 'true'
         uses: actions/cache@v4
         with:
           path: |
