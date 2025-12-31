@@ -23,6 +23,14 @@ on:
         description: "Force Lint Web to run"
         required: false
         default: "false"
+      disable_spm_cache:
+        description: "Disable SPM dependency caching (fixes macro issues)"
+        required: false
+        default: "false"
+      disable_ios:
+        description: "Skip Build iOS job entirely"
+        required: false
+        default: "false"
 
 env:
   # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
@@ -54,7 +62,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     needs: changes
-    if: needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true'
+    if: (needs.changes.outputs.ios == 'true' || needs.changes.outputs.shared == 'true' || inputs.force_ios == 'true') && inputs.disable_ios != 'true'
     env:
       DERIVED_DATA_PATH: ~/Library/Developer/Xcode/DerivedData/DemocracyDJ-CI
     steps:
@@ -67,6 +75,7 @@ jobs:
           echo "XCODE_VERSION=$(xcodebuild -version | head -n1 | awk '{print $2}')" >> "$GITHUB_ENV"
 
       - name: Cache SPM dependencies
+        if: inputs.disable_spm_cache != 'true'
         uses: actions/cache@v4
         with:
           path: |
