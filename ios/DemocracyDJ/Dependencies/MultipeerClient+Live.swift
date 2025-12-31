@@ -21,7 +21,7 @@ actor MultipeerActor {
     // MARK: - Constants
 
     private static let serviceType = "democracy-dj"
-    private static let discoveryInfo = ["version": "1", "role": "host"]
+    private static let discoveryInfo = ["version": "1"]
 
     // MARK: - State
 
@@ -36,6 +36,7 @@ actor MultipeerActor {
     private var reversePeerMap: [String: MCPeerID] = [:]
 
     private var continuation: AsyncStream<MultipeerEvent>.Continuation?
+    private var eventStreamInstance: AsyncStream<MultipeerEvent>?
     private var isHosting: Bool = false
 
     private let encoder = JSONEncoder()
@@ -156,14 +157,17 @@ actor MultipeerActor {
 
     /// Returns a new AsyncStream for events. Previous stream is finished.
     func eventStream() -> AsyncStream<MultipeerEvent> {
-        // Finish existing stream if any
-        continuation?.finish()
+        if let stream = eventStreamInstance {
+            return stream
+        }
 
-        return AsyncStream { [weak self] newContinuation in
+        let stream = AsyncStream { [weak self] newContinuation in
             Task { [weak self] in
                 await self?.setContinuation(newContinuation)
             }
         }
+        eventStreamInstance = stream
+        return stream
     }
 
     private func setContinuation(_ newContinuation: AsyncStream<MultipeerEvent>.Continuation) {
@@ -210,7 +214,7 @@ actor MultipeerActor {
         case .connected:
             // Ensure peer is in map
             if peerMap[mcPeerID] == nil {
-                let peer = Peer(id: UUID().uuidString, name: mcPeerID.displayName)
+                let peer = Peer(id: mcPeerID.displayName, name: mcPeerID.displayName)
                 peerMap[mcPeerID] = peer
                 reversePeerMap[peer.id] = mcPeerID
             }
@@ -249,23 +253,20 @@ actor MultipeerActor {
 
     func handlePeerDiscovered(_ mcPeerID: MCPeerID, discoveryInfo: [String: String]?) {
         // Create Peer and add to maps
-        let peer = Peer(id: UUID().uuidString, name: mcPeerID.displayName)
+        let peer = Peer(id: mcPeerID.displayName, name: mcPeerID.displayName)
         peerMap[mcPeerID] = peer
         reversePeerMap[peer.id] = mcPeerID
 
         emit(.peerDiscovered(peer))
 
         // Guest auto-invites discovered hosts
-        if !isHosting {
-            // Check role in discoveryInfo
-            if discoveryInfo?["role"] == "host", let session {
-                browser?.invitePeer(
-                    mcPeerID,
-                    to: session,
-                    withContext: nil,
-                    timeout: 30
-                )
-            }
+        if !isHosting, let session {
+            browser?.invitePeer(
+                mcPeerID,
+                to: session,
+                withContext: nil,
+                timeout: 30
+            )
         }
     }
 
@@ -279,7 +280,7 @@ actor MultipeerActor {
     /// Called after host auto-accepts an invitation (handler already called in delegate).
     func handleInvitationAccepted(from mcPeerID: MCPeerID) {
         // Create Peer for the connecting device
-        let peer = Peer(id: UUID().uuidString, name: mcPeerID.displayName)
+        let peer = Peer(id: mcPeerID.displayName, name: mcPeerID.displayName)
         peerMap[mcPeerID] = peer
         reversePeerMap[peer.id] = mcPeerID
     }
