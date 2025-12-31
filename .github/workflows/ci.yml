@@ -30,7 +30,7 @@ on:
       disable_ios:
         description: "Skip Build iOS job entirely"
         required: false
-        default: "false"
+        default: "true"
 
 env:
   # Toggle verbose logging: 'true' for debug output, 'false' for quiet builds
