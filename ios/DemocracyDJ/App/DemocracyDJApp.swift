@@ -1,3 +1,5 @@
+import ComposableArchitecture
+import Shared
 import SwiftUI
 
 @main
@@ -10,17 +12,12 @@ struct DemocracyDJApp: App {
 }
 
 struct ContentView: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Hello Democracy")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+    private let store = Store(initialState: HostFeature.State(myPeer: Peer(name: "Host"))) {
+        HostFeature()
+    }
 
-            Text("Your road trip, your votes")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
+    var body: some View {
+        HostView(store: store)
     }
 }
 
