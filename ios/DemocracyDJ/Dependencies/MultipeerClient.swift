@@ -55,21 +55,10 @@ extension DependencyValues {
     }
 }
 
-// MARK: - Stub Implementations
+// MARK: - Test/Preview Implementations
 
 extension MultipeerClient {
-    /// Placeholder for "Implement MultipeerClient Live Dependency" issue.
-    /// Will be replaced with actual MultipeerConnectivity implementation.
-    static let live = MultipeerClient(
-        startHosting: { _ in },
-        startBrowsing: { _ in },
-        stop: { },
-        send: { _, _ in },
-        events: {
-            // Never-finishing stream (like real networking)
-            AsyncStream { _ in }
-        }
-    )
+    // Note: `.live` is implemented in MultipeerClient+Live.swift
 
     /// No-op for unit tests. Never yields events, never finishes.
     /// Tests needing events should override via withDependencies.
