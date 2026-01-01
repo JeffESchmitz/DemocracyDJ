@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Dependencies
 import Shared
+import struct MusicKit.MusicAuthorization
 
 @Reducer
 struct HostFeature {
@@ -10,6 +11,7 @@ struct HostFeature {
         var queue: [QueueItem] = []
         var connectedPeers: [Peer] = []
         var isHosting: Bool = false
+        var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         var myPeer: Peer
 
         init(
@@ -17,13 +19,15 @@ struct HostFeature {
             nowPlaying: Song? = nil,
             queue: [QueueItem] = [],
             connectedPeers: [Peer] = [],
-            isHosting: Bool = false
+            isHosting: Bool = false,
+            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.myPeer = myPeer
             self.nowPlaying = nowPlaying
             self.queue = queue
             self.connectedPeers = connectedPeers
             self.isHosting = isHosting
+            self.musicAuthorizationStatus = musicAuthorizationStatus
         }
 
         init(
@@ -31,14 +35,16 @@ struct HostFeature {
             nowPlaying: Song? = nil,
             queue: [QueueItem] = [],
             connectedPeers: [Peer] = [],
-            isHosting: Bool = false
+            isHosting: Bool = false,
+            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.init(
                 myPeer: Peer(name: displayName),
                 nowPlaying: nowPlaying,
                 queue: queue,
                 connectedPeers: connectedPeers,
-                isHosting: isHosting
+                isHosting: isHosting,
+                musicAuthorizationStatus: musicAuthorizationStatus
             )
         }
     }
@@ -53,11 +59,15 @@ struct HostFeature {
         case pauseTapped
         case skipTapped
 
+        // Authorization
+        case requestMusicAuthorization
+
         // Network
         case multipeerEvent(MultipeerEvent)
 
         // Internal
         case _processIntent(GuestIntent, from: Peer)
+        case _authorizationStatusUpdated(MusicAuthorization.Status)
         case _broadcastSnapshot
     }
 
@@ -70,7 +80,6 @@ struct HostFeature {
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
-            _ = musicKitClient
             var effects: [Effect<Action>] = []
             var needsBroadcast = false
 
@@ -116,6 +125,12 @@ struct HostFeature {
                 } else {
                     state.nowPlaying = state.queue.removeFirst().song
                     needsBroadcast = true
+                }
+
+            case .requestMusicAuthorization:
+                return .run { send in
+                    let status = await musicKitClient.requestAuthorization()
+                    await send(._authorizationStatusUpdated(status))
                 }
 
             case let .multipeerEvent(event):
@@ -169,6 +184,9 @@ struct HostFeature {
                         needsBroadcast = true
                     }
                 }
+
+            case let ._authorizationStatusUpdated(status):
+                state.musicAuthorizationStatus = status
 
             case ._broadcastSnapshot:
                 let snapshot = HostSnapshot(

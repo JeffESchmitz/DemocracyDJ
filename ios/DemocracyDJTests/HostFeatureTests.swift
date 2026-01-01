@@ -1,11 +1,29 @@
 import ComposableArchitecture
 import Shared
 import Testing
+import struct MusicKit.MusicAuthorization
 @testable import DemocracyDJ
 
 @MainActor
 @Suite("HostFeature")
 struct HostFeatureTests {
+    @Test func requestMusicAuthorizationStoresStatus() async {
+        let host = Peer(id: "host", name: "Host")
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(
+                requestAuthorization: { .authorized }
+            )
+        }
+
+        await store.send(.requestMusicAuthorization)
+
+        await store.receive(._authorizationStatusUpdated(.authorized)) {
+            $0.musicAuthorizationStatus = .authorized
+        }
+    }
+
     @Test func votingIsIdempotent() async {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")
