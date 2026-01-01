@@ -25,6 +25,22 @@ struct HostFeature {
             self.connectedPeers = connectedPeers
             self.isHosting = isHosting
         }
+
+        init(
+            displayName: String,
+            nowPlaying: Song? = nil,
+            queue: [QueueItem] = [],
+            connectedPeers: [Peer] = [],
+            isHosting: Bool = false
+        ) {
+            self.init(
+                myPeer: Peer(name: displayName),
+                nowPlaying: nowPlaying,
+                queue: queue,
+                connectedPeers: connectedPeers,
+                isHosting: isHosting
+            )
+        }
     }
 
     enum Action: Equatable {
