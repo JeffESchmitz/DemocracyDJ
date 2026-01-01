@@ -1,5 +1,4 @@
 import ComposableArchitecture
-import Shared
 import SwiftUI
 
 @main
@@ -12,32 +11,24 @@ struct DemocracyDJApp: App {
 }
 
 struct ContentView: View {
-    private let store = Store(initialState: HostFeature.State(myPeer: Peer(name: "Host"))) {
-        HostFeature()
+    private let store = Store(initialState: AppFeature.State()) {
+        AppFeature()
     }
-    private let guestStore = Store(initialState: GuestFeature.State()) {
-        GuestFeature()
-    }
-    @State private var showingGuest = false
 
     var body: some View {
-        Group {
-            if showingGuest {
-                GuestView(store: guestStore)
-            } else {
-                HostView(store: store)
+        SwitchStore(store.scope(state: \.mode, action: { $0 })) { state in
+            switch state {
+            case .modeSelection:
+                ModeSelectionView(store: store)
+            case .host:
+                IfLetStore(store.scope(state: \.hostState, action: AppFeature.Action.host)) { hostStore in
+                    HostView(store: hostStore)
+                }
+            case .guest:
+                IfLetStore(store.scope(state: \.guestState, action: AppFeature.Action.guest)) { guestStore in
+                    GuestView(store: guestStore)
+                }
             }
-        }
-        .overlay(alignment: .topTrailing) {
-            Button(showingGuest ? "Host" : "Guest") {
-                showingGuest.toggle()
-            }
-            .font(.caption)
-            .padding(8)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            .padding()
-            .accessibilityLabel(showingGuest ? "Show host view" : "Show guest view")
         }
     }
 }
