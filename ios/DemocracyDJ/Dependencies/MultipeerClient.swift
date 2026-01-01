@@ -15,6 +15,9 @@ struct MultipeerClient: Sendable {
     /// Stop all networking activity (advertising, browsing, session).
     var stop: @Sendable () async -> Void
 
+    /// Invite a discovered host to connect.
+    var invite: @Sendable (_ host: Peer) async throws -> Void
+
     /// Sends a message to a specific peer, or broadcasts to all peers when `to == nil`.
     var send: @Sendable (_ message: MeshMessage, _ to: Peer?) async throws -> Void
 
@@ -79,18 +82,21 @@ extension MultipeerClient {
     ///   - onStartHosting: Closure called when startHosting is invoked
     ///   - onStartBrowsing: Closure called when startBrowsing is invoked
     ///   - onStop: Closure called when stop is invoked
+    ///   - onInvite: Closure called when invite is invoked
     ///   - onSend: Closure called when send is invoked
     static func mock(
         events: AsyncStream<MultipeerEvent> = AsyncStream { $0.finish() },
         onStartHosting: @escaping @Sendable (String) async -> Void = { _ in },
         onStartBrowsing: @escaping @Sendable (String) async -> Void = { _ in },
         onStop: @escaping @Sendable () async -> Void = {},
+        onInvite: @escaping @Sendable (Peer) async throws -> Void = { _ in },
         onSend: @escaping @Sendable (MeshMessage, Peer?) async throws -> Void = { _, _ in }
     ) -> Self {
         MultipeerClient(
             startHosting: onStartHosting,
             startBrowsing: onStartBrowsing,
             stop: onStop,
+            invite: onInvite,
             send: onSend,
             events: { events }
         )
@@ -103,6 +109,7 @@ extension MultipeerClient {
             startHosting: { _ in },
             startBrowsing: { _ in },
             stop: {},
+            invite: { _ in },
             send: { _, _ in },
             events: {
                 AsyncStream { continuation in

@@ -153,6 +153,23 @@ actor MultipeerActor {
         try session.send(data, toPeers: targetPeers, with: .reliable)
     }
 
+    /// Invite a discovered host to connect.
+    func invite(_ host: Peer) throws {
+        guard let session else {
+            throw MultipeerError.notConnected
+        }
+
+        guard let browser else {
+            throw MultipeerError.notConnected
+        }
+
+        guard let mcPeerID = reversePeerMap[host.id] else {
+            throw MultipeerError.peerNotFound(host.id)
+        }
+
+        browser.invitePeer(mcPeerID, to: session, withContext: nil, timeout: 30)
+    }
+
     // MARK: - Event Stream
 
     /// Returns a new AsyncStream for events. Previous stream is finished.
@@ -258,16 +275,6 @@ actor MultipeerActor {
         reversePeerMap[peer.id] = mcPeerID
 
         emit(.peerDiscovered(peer))
-
-        // Guest auto-invites discovered hosts
-        if !isHosting, let session {
-            browser?.invitePeer(
-                mcPeerID,
-                to: session,
-                withContext: nil,
-                timeout: 30
-            )
-        }
     }
 
     func handlePeerLost(_ mcPeerID: MCPeerID) {
@@ -444,6 +451,9 @@ extension MultipeerClient {
             },
             stop: {
                 await actor.stop()
+            },
+            invite: { host in
+                try await actor.invite(host)
             },
             send: { message, peer in
                 try await actor.send(message, to: peer)
