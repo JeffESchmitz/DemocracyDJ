@@ -62,6 +62,7 @@ struct HostFeature {
     }
 
     @Dependency(\.multipeerClient) private var multipeerClient
+    @Dependency(\.musicKitClient) private var musicKitClient
 
     private enum CancelID {
         case multipeerEvents
@@ -69,6 +70,7 @@ struct HostFeature {
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
+            _ = musicKitClient
             var effects: [Effect<Action>] = []
             var needsBroadcast = false
 
