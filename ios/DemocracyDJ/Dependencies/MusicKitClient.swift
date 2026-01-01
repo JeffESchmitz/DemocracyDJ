@@ -1,4 +1,5 @@
 import Dependencies
+import Foundation
 import MusicKit
 import Shared
 
@@ -10,8 +11,8 @@ import Shared
 /// Maps MusicKit.Song to Shared.Song at the dependency boundary.
 struct MusicKitClient: Sendable {
     var requestAuthorization: @Sendable () async -> MusicAuthorization.Status
-    var search: @Sendable (_ query: String) async throws -> [Song]
-    var play: @Sendable (_ song: Song) async throws -> Void
+    var search: @Sendable (_ query: String) async throws -> [Shared.Song]
+    var play: @Sendable (_ song: Shared.Song) async throws -> Void
     var pause: @Sendable () async -> Void
     var skip: @Sendable () async -> Void
     var playbackStatus: @Sendable () -> AsyncStream<PlaybackStatus>
@@ -43,27 +44,27 @@ extension MusicKitClient {
     static let live: MusicKitClient = .mock
 
     static let mock = MusicKitClient(
-        requestAuthorization: { .notDetermined },
+        requestAuthorization: { MusicAuthorization.Status.notDetermined },
         search: { _ in [] },
         play: { _ in },
         pause: { },
         skip: { },
         playbackStatus: {
             AsyncStream { continuation in
-                continuation.yield(.notPlaying)
+                continuation.yield(PlaybackStatus.notPlaying)
             }
         }
     )
 
     static let preview = MusicKitClient(
-        requestAuthorization: { .notDetermined },
+        requestAuthorization: { MusicAuthorization.Status.notDetermined },
         search: { _ in [] },
         play: { _ in },
         pause: { },
         skip: { },
         playbackStatus: {
             AsyncStream { continuation in
-                continuation.yield(.notPlaying)
+                continuation.yield(PlaybackStatus.notPlaying)
             }
         }
     )
