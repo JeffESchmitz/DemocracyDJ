@@ -46,14 +46,14 @@ struct AppFeatureTests {
         }
 
         await store.send(.guestSelected) {
-            $0.mode = .guest(GuestFeature.State())
+            $0.mode = .guest(GuestFeature.State(myPeer: nil))
         }
     }
 
     @Test func exitSessionStopsNetworking() async {
         let recorder = StopRecorder()
         let store = TestStore(initialState: AppFeature.State(
-            mode: .guest(GuestFeature.State()),
+            mode: .guest(GuestFeature.State(myPeer: nil)),
             displayName: "Guest"
         )) {
             AppFeature()
