@@ -75,7 +75,7 @@ struct AppFeature {
                 guard !trimmed.isEmpty else {
                     return .none
                 }
-                state.mode = .guest(GuestFeature.State())
+                state.mode = .guest(GuestFeature.State(myPeer: nil))
                 return .none
 
             case .exitSession:
