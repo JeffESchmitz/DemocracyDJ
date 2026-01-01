@@ -43,18 +43,31 @@ extension MusicKitClient {
     // Placeholder for future live implementation.
     static let live: MusicKitClient = .mock
 
-    static let mock = MusicKitClient(
-        requestAuthorization: { MusicAuthorization.Status.notDetermined },
-        search: { _ in [] },
-        play: { _ in },
-        pause: { },
-        skip: { },
-        playbackStatus: {
+    static func mock(
+        requestAuthorization: @escaping @Sendable () async -> MusicAuthorization.Status = {
+            MusicAuthorization.Status.notDetermined
+        },
+        search: @escaping @Sendable (String) async throws -> [Shared.Song] = { _ in [] },
+        play: @escaping @Sendable (Shared.Song) async throws -> Void = { _ in },
+        pause: @escaping @Sendable () async -> Void = {},
+        skip: @escaping @Sendable () async -> Void = {},
+        playbackStatus: @escaping @Sendable () -> AsyncStream<PlaybackStatus> = {
             AsyncStream { continuation in
                 continuation.yield(PlaybackStatus.notPlaying)
             }
         }
-    )
+    ) -> Self {
+        MusicKitClient(
+            requestAuthorization: requestAuthorization,
+            search: search,
+            play: play,
+            pause: pause,
+            skip: skip,
+            playbackStatus: playbackStatus
+        )
+    }
+
+    static let mock = MusicKitClient.mock()
 
     static let preview = MusicKitClient(
         requestAuthorization: { MusicAuthorization.Status.notDetermined },

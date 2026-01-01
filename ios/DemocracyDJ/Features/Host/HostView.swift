@@ -72,6 +72,14 @@ struct HostView: View {
                         .accessibilityLabel("Skip song")
                     }
                     .padding(.top, 10)
+#if DEBUG
+                    Button("DEBUG: Request Music Authorization") {
+                        store.send(.requestMusicAuthorization)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .padding(.top, 16)
+#endif
 
                 } else {
                     // Empty State / Nothing Playing
@@ -104,6 +112,14 @@ struct HostView: View {
                     .foregroundStyle(.tertiary)
                     .padding(.top, 10)
                     .accessibilityLabel("Controls disabled")
+#if DEBUG
+                    Button("DEBUG: Request Music Authorization") {
+                        store.send(.requestMusicAuthorization)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    .padding(.top, 16)
+#endif
                 }
             }
             .frame(maxWidth: .infinity)
