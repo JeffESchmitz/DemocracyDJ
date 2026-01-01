@@ -12,6 +12,7 @@
 		6AA2C7F62E2E3AF4AFB831A1 /* HostFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */; };
 		3C6D8F2A1B4E7C9D0F1A2B3C /* HostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */; };
 		4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */; };
+		5E6F7081920A1B2C3D4E5F60 /* GuestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */; };
 		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
 		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
 		A1B2C3D4E5F60718293A4B5C /* GuestFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0F1A2B3C4D5E6F7081920A /* GuestFeatureTests.swift */; };
@@ -34,6 +35,7 @@
 		1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeature.swift; sourceTree = "<group>"; };
 		7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostView.swift; sourceTree = "<group>"; };
 		8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestFeature.swift; sourceTree = "<group>"; };
+		0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestView.swift; sourceTree = "<group>"; };
 		2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeatureTests.swift; sourceTree = "<group>"; };
 		270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJApp.swift; sourceTree = "<group>"; };
 		3F18D2C0F9A1B2C3D4E5F678 /* DemocracyDJTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = DemocracyDJTests.xctestplan; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 			isa = PBXGroup;
 			children = (
 				8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */,
+				0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */,
 			);
 			path = Guest;
 			sourceTree = "<group>";
@@ -241,6 +244,7 @@
 				6AA2C7F62E2E3AF4AFB831A1 /* HostFeature.swift in Sources */,
 				3C6D8F2A1B4E7C9D0F1A2B3C /* HostView.swift in Sources */,
 				4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */,
+				5E6F7081920A1B2C3D4E5F60 /* GuestView.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 			);
