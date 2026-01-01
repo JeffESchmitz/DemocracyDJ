@@ -22,6 +22,8 @@
 	<array>
 		<string>_democracy-dj._tcp</string>
 	</array>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Democracy DJ needs access to Apple Music to play songs and manage the queue.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Democracy DJ uses the local network to connect devices for collaborative music voting.</string>
 	<key>UIApplicationSceneManifest</key>
