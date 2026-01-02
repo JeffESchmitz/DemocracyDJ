@@ -40,27 +40,21 @@ struct HostView: View {
                             .accessibilityLabel("Artist: \(song.artist)")
                     }
 
-                    // Controls (Active - Separate Buttons)
+                    // Controls (Active)
                     HStack(spacing: 40) {
                         Button {
-                            store.send(.playTapped)
+                            if store.isPlaying {
+                                store.send(.pauseTapped)
+                            } else {
+                                store.send(.playTapped)
+                            }
                         } label: {
-                            Image(systemName: "play.circle.fill")
+                            Image(systemName: store.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                 .font(.system(size: 70))
                                 .foregroundStyle(.primary)
                         }
-                        .accessibilityLabel("Play")
-                        .accessibilityHint("Resumes playback")
-
-                        Button {
-                            store.send(.pauseTapped)
-                        } label: {
-                            Image(systemName: "pause.circle.fill")
-                                .font(.system(size: 70))
-                                .foregroundStyle(.primary)
-                        }
-                        .accessibilityLabel("Pause")
-                        .accessibilityHint("Pauses playback")
+                        .accessibilityLabel(store.isPlaying ? "Pause" : "Play")
+                        .accessibilityHint(store.isPlaying ? "Pauses playback" : "Resumes playback")
 
                         Button {
                             store.send(.skipTapped)
@@ -103,8 +97,6 @@ struct HostView: View {
                     // Controls (Disabled)
                     HStack(spacing: 40) {
                         Image(systemName: "play.circle.fill")
-                            .font(.system(size: 70))
-                        Image(systemName: "pause.circle.fill")
                             .font(.system(size: 70))
                         Image(systemName: "forward.end.fill")
                             .font(.system(size: 50))

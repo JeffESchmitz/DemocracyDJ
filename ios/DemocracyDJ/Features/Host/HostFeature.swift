@@ -11,6 +11,7 @@ struct HostFeature {
         var queue: [QueueItem] = []
         var connectedPeers: [Peer] = []
         var isHosting: Bool = false
+        var isPlaying: Bool = false
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         var myPeer: Peer
 
@@ -20,6 +21,7 @@ struct HostFeature {
             queue: [QueueItem] = [],
             connectedPeers: [Peer] = [],
             isHosting: Bool = false,
+            isPlaying: Bool = false,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.myPeer = myPeer
@@ -27,6 +29,7 @@ struct HostFeature {
             self.queue = queue
             self.connectedPeers = connectedPeers
             self.isHosting = isHosting
+            self.isPlaying = isPlaying
             self.musicAuthorizationStatus = musicAuthorizationStatus
         }
 
@@ -36,6 +39,7 @@ struct HostFeature {
             queue: [QueueItem] = [],
             connectedPeers: [Peer] = [],
             isHosting: Bool = false,
+            isPlaying: Bool = false,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.init(
@@ -44,6 +48,7 @@ struct HostFeature {
                 queue: queue,
                 connectedPeers: connectedPeers,
                 isHosting: isHosting,
+                isPlaying: isPlaying,
                 musicAuthorizationStatus: musicAuthorizationStatus
             )
         }
@@ -115,10 +120,30 @@ struct HostFeature {
                 break
 
             case .playTapped:
-                break
+                guard let song = state.nowPlaying else {
+                    break
+                }
+                guard state.musicAuthorizationStatus == .authorized else {
+                    effects.append(.send(.requestMusicAuthorization))
+                    break
+                }
+                state.isPlaying = true
+                effects.append(
+                    .run { _ in
+                        try await musicKitClient.play(song)
+                    }
+                )
 
             case .pauseTapped:
-                break
+                guard state.isPlaying else {
+                    break
+                }
+                state.isPlaying = false
+                effects.append(
+                    .run { _ in
+                        await musicKitClient.pause()
+                    }
+                )
 
             case .skipTapped:
                 if state.queue.isEmpty {
