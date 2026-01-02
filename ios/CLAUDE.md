@@ -68,6 +68,14 @@ struct HostView: View {
 4. **Idempotent Voting**: `QueueItem.voters` is `Set<String>`—duplicates are no-ops
 5. **Full Snapshots**: Broadcast entire `HostSnapshot` on every change
 
+## ADRs
+
+| ADR | Title | Status |
+| --- | ----- | ------ |
+| [001](docs/adr/001-snapshot-strategy.md) | Snapshot Strategy | Accepted |
+| [002](docs/adr/002-peer-identity-mapping.md) | Peer Identity Mapping | Accepted |
+| [003](docs/adr/003-async-stream-lifecycle.md) | AsyncStream Lifecycle Rules | Accepted |
+
 ## Dependencies Location
 
 ```
@@ -108,7 +116,7 @@ Dependencies/
     let store = TestStore(initialState: HostFeature.State()) {
         HostFeature()
     } withDependencies: {
-        $0.multipeerClient = .mock(events: stream)
+        $0.multipeerClient = .mock(events: { stream })
     }
 
     // Simulate peer connection
