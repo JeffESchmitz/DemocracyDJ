@@ -153,6 +153,112 @@ struct GuestFeatureTests {
         continuation?.yield(.peerDiscovered(Peer(id: "late", name: "Late")))
         await store.finish()
     }
+
+    @Test func stopBrowsingClearsState() async {
+        let store = TestStore(initialState: GuestFeature.State(
+            myPeer: Peer(id: "guest", name: "Guest"),
+            connectionStatus: .connected(host: Peer(id: "host", name: "Host")),
+            hostSnapshot: HostSnapshot(nowPlaying: nil, queue: [], connectedPeers: []),
+            pendingVotes: ["song-1"],
+            availableHosts: [Peer(id: "host", name: "Host")]
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+        }
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+            $0.availableHosts = []
+            $0.hostSnapshot = nil
+            $0.pendingVotes = []
+        }
+    }
+
+    @Test func startBrowsingTwiceCancelsPreviousStream() async {
+        let terminationRecorder = TerminationRecorder()
+        let firstStream = AsyncStream<MultipeerEvent> { continuation in
+            continuation.onTermination = { _ in
+                Task {
+                    await terminationRecorder.record()
+                }
+            }
+        }
+        let secondStream = AsyncStream<MultipeerEvent> { _ in }
+        let recorder = GuestStartRecorder()
+        let counter = EventsStreamCounter(
+            first: firstStream,
+            second: secondStream
+        )
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(
+                events: {
+                    await counter.nextStream()
+                },
+                onStartBrowsing: { displayName in
+                    await recorder.record(name: displayName)
+                }
+            )
+            $0.uuid = .incrementing
+        }
+
+        await store.send(.startBrowsing(displayName: "Guest")) {
+            $0.myPeer = Peer(id: UUID(0).uuidString, name: "Guest")
+            $0.connectionStatus = .browsing
+        }
+
+        await store.send(.startBrowsing(displayName: "Guest Again")) {
+            $0.myPeer = Peer(id: UUID(1).uuidString, name: "Guest Again")
+            $0.connectionStatus = .browsing
+        }
+
+        await terminationRecorder.waitForCount(1)
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+            $0.availableHosts = []
+            $0.hostSnapshot = nil
+            $0.pendingVotes = []
+        }
+
+        await store.finish()
+    }
+}
+
+actor EventsStreamCounter {
+    private let first: AsyncStream<MultipeerEvent>
+    private let second: AsyncStream<MultipeerEvent>
+    private var count = 0
+
+    init(first: AsyncStream<MultipeerEvent>, second: AsyncStream<MultipeerEvent>) {
+        self.first = first
+        self.second = second
+    }
+
+    func nextStream() -> AsyncStream<MultipeerEvent> {
+        count += 1
+        return count == 1 ? first : second
+    }
+}
+
+actor TerminationRecorder {
+    private var terminationCount = 0
+
+    func record() {
+        terminationCount += 1
+    }
+
+    func waitForCount(_ count: Int) async {
+        for _ in 0..<100 {
+            if terminationCount >= count {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
 }
 
 actor GuestSendRecorder {

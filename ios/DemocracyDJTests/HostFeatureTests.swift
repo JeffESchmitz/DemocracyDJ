@@ -159,6 +159,64 @@ struct HostFeatureTests {
         }
         await store.finish()
     }
+
+    @Test func stopHostingCancelsEventStream() async {
+        let host = Peer(id: "host", name: "Host")
+        let guest = Peer(id: "guest", name: "Guest")
+        var continuation: AsyncStream<MultipeerEvent>.Continuation?
+        let stream = AsyncStream<MultipeerEvent> { streamContinuation in
+            continuation = streamContinuation
+        }
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(events: { stream })
+        }
+
+        await store.send(.startHosting) {
+            $0.isHosting = true
+        }
+
+        await store.send(.stopHosting) {
+            $0.isHosting = false
+        }
+
+        continuation?.yield(.peerConnected(guest))
+        await store.finish()
+    }
+
+    @Test func startHostingTwiceDoesNotDuplicateEvents() async {
+        let host = Peer(id: "host", name: "Host")
+        let terminationRecorder = HostTerminationRecorder()
+        let firstStream = AsyncStream<MultipeerEvent> { continuation in
+            continuation.onTermination = { _ in
+                Task {
+                    await terminationRecorder.record()
+                }
+            }
+        }
+        let secondStream = AsyncStream<MultipeerEvent> { _ in }
+        let eventsCounter = HostEventsStreamCounter(first: firstStream, second: secondStream)
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(events: { await eventsCounter.nextStream() })
+        }
+
+        await store.send(.startHosting) {
+            $0.isHosting = true
+        }
+        await store.send(.startHosting)
+
+        await terminationRecorder.waitForCount(1)
+
+        await store.send(.stopHosting) {
+            $0.isHosting = false
+        }
+        await store.finish()
+    }
 }
 
 actor SendRecorder {
@@ -192,5 +250,55 @@ actor StartRecorder {
 
     func record(name: String) {
         self.name = name
+    }
+}
+
+actor StartCountRecorder {
+    private var count = 0
+
+    func record() {
+        count += 1
+    }
+
+    func waitForCount(_ target: Int) async {
+        for _ in 0..<100 {
+            if count >= target {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
+}
+
+actor HostEventsStreamCounter {
+    private let first: AsyncStream<MultipeerEvent>
+    private let second: AsyncStream<MultipeerEvent>
+    private var count = 0
+
+    init(first: AsyncStream<MultipeerEvent>, second: AsyncStream<MultipeerEvent>) {
+        self.first = first
+        self.second = second
+    }
+
+    func nextStream() -> AsyncStream<MultipeerEvent> {
+        count += 1
+        return count == 1 ? first : second
+    }
+}
+
+actor HostTerminationRecorder {
+    private var terminationCount = 0
+
+    func record() {
+        terminationCount += 1
+    }
+
+    func waitForCount(_ count: Int) async {
+        for _ in 0..<100 {
+            if terminationCount >= count {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
     }
 }
