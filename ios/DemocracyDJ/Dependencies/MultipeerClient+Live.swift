@@ -117,6 +117,7 @@ actor MultipeerActor {
         // Finish stream (Option A: restart requires new actor)
         continuation?.finish()
         continuation = nil
+        eventStreamInstance = nil
     }
 
     // MARK: - Messaging
@@ -172,7 +173,7 @@ actor MultipeerActor {
 
     // MARK: - Event Stream
 
-    /// Returns a new AsyncStream for events. Previous stream is finished.
+    /// Returns the event stream (single-subscriber model).
     func eventStream() -> AsyncStream<MultipeerEvent> {
         if let stream = eventStreamInstance {
             return stream
@@ -199,6 +200,7 @@ actor MultipeerActor {
 
     private func handleStreamTermination() {
         self.continuation = nil
+        self.eventStreamInstance = nil
     }
 
     private func emit(_ event: MultipeerEvent) {
@@ -459,14 +461,7 @@ extension MultipeerClient {
                 try await actor.send(message, to: peer)
             },
             events: {
-                AsyncStream { continuation in
-                    Task {
-                        for await event in await actor.eventStream() {
-                            continuation.yield(event)
-                        }
-                        continuation.finish()
-                    }
-                }
+                await actor.eventStream()
             }
         )
     }

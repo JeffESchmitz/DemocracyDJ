@@ -134,7 +134,7 @@ struct HostFeatureTests {
             HostFeature()
         } withDependencies: {
             $0.multipeerClient = .mock(
-                events: stream,
+                events: { stream },
                 onStartHosting: { displayName in
                     await recorder.record(name: displayName)
                 }

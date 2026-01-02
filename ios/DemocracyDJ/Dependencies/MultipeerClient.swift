@@ -22,7 +22,9 @@ struct MultipeerClient: Sendable {
     var send: @Sendable (_ message: MeshMessage, _ to: Peer?) async throws -> Void
 
     /// Returns a stream of networking events. Subscribe once per feature lifecycle.
-    var events: @Sendable () -> AsyncStream<MultipeerEvent>
+    /// Single-subscriber model: only one consumer should iterate the stream.
+    /// The stream is finished when stop() is called.
+    var events: @Sendable () async -> AsyncStream<MultipeerEvent>
 }
 
 // MARK: - MultipeerEvent
@@ -85,7 +87,9 @@ extension MultipeerClient {
     ///   - onInvite: Closure called when invite is invoked
     ///   - onSend: Closure called when send is invoked
     static func mock(
-        events: AsyncStream<MultipeerEvent> = AsyncStream { $0.finish() },
+        events: @escaping @Sendable () async -> AsyncStream<MultipeerEvent> = {
+            AsyncStream { $0.finish() }
+        },
         onStartHosting: @escaping @Sendable (String) async -> Void = { _ in },
         onStartBrowsing: @escaping @Sendable (String) async -> Void = { _ in },
         onStop: @escaping @Sendable () async -> Void = {},
@@ -98,7 +102,7 @@ extension MultipeerClient {
             stop: onStop,
             invite: onInvite,
             send: onSend,
-            events: { events }
+            events: events
         )
     }
 

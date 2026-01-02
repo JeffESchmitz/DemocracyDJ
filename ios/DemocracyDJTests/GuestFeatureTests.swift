@@ -13,7 +13,7 @@ struct GuestFeatureTests {
             GuestFeature()
         } withDependencies: {
             $0.multipeerClient = .mock(
-                events: AsyncStream { $0.finish() },
+                events: { AsyncStream { $0.finish() } },
                 onStartBrowsing: { displayName in
                     await recorder.record(name: displayName)
                 }
@@ -121,6 +121,38 @@ struct GuestFeatureTests {
         let last = await recorder.last
         #expect(last == host)
     }
+
+    @Test func stopBrowsingCancelsEventStream() async {
+        var continuation: AsyncStream<MultipeerEvent>.Continuation?
+        let stream = AsyncStream<MultipeerEvent> { streamContinuation in
+            continuation = streamContinuation
+        }
+        let stopRecorder = GuestStopRecorder()
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(
+                events: { stream },
+                onStop: { await stopRecorder.record() }
+            )
+            $0.uuid = .incrementing
+        }
+
+        await store.send(.startBrowsing(displayName: "Guest")) {
+            $0.myPeer = Peer(id: UUID(0).uuidString, name: "Guest")
+            $0.connectionStatus = .browsing
+        }
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+        }
+
+        #expect(await stopRecorder.called)
+
+        continuation?.yield(.peerDiscovered(Peer(id: "late", name: "Late")))
+        await store.finish()
+    }
 }
 
 actor GuestSendRecorder {
@@ -175,5 +207,17 @@ actor InviteRecorder {
 
     var last: Peer? {
         peers.last
+    }
+}
+
+actor GuestStopRecorder {
+    private var didCallStop = false
+
+    func record() {
+        didCallStop = true
+    }
+
+    var called: Bool {
+        didCallStop
     }
 }

@@ -45,6 +45,10 @@ struct GuestFeature {
     @Dependency(\.multipeerClient) var multipeerClient
     @Dependency(\.uuid) var uuid
 
+    private enum CancelID {
+        case multipeerEvents
+    }
+
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -63,10 +67,11 @@ struct GuestFeature {
 
                 return .run { send in
                     await multipeerClient.startBrowsing(displayName)
-                    for await event in multipeerClient.events() {
+                    for await event in await multipeerClient.events() {
                         await send(.multipeerEvent(event))
                     }
                 }
+                .cancellable(id: CancelID.multipeerEvents, cancelInFlight: true)
 
             case .stopBrowsing:
                 state.connectionStatus = .disconnected
@@ -74,9 +79,12 @@ struct GuestFeature {
                 state.hostSnapshot = nil
                 state.pendingVotes.removeAll()
 
-                return .run { _ in
-                    await multipeerClient.stop()
-                }
+                return .merge(
+                    .run { _ in
+                        await multipeerClient.stop()
+                    },
+                    .cancel(id: CancelID.multipeerEvents)
+                )
 
             case let .connectToHost(host):
                 state.connectionStatus = .connecting(host: host)

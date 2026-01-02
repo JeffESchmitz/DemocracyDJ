@@ -94,7 +94,7 @@ struct HostFeature {
                 )
                 effects.append(
                     .run { send in
-                        for await event in multipeerClient.events() {
+                        for await event in await multipeerClient.events() {
                             await send(.multipeerEvent(event))
                         }
                     }
