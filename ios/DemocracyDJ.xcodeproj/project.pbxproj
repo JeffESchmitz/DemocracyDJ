@@ -46,7 +46,7 @@
 		2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeatureTests.swift; sourceTree = "<group>"; };
 		3C4D5E6F7081920A1B2C3D4E /* ModeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeSelectionView.swift; sourceTree = "<group>"; };
 		3F18D2C0F9A1B2C3D4E5F678 /* DemocracyDJTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = DemocracyDJTests.xctestplan; sourceTree = "<group>"; };
-		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D5E6F7081920A1B2C3D4E5F /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
 		665D74033AE5AC105B0C44DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -72,17 +72,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
-
-/* Begin PBXResourcesBuildPhase section */
-		D6B7C8D9E0F1A2B3C4D5E6F7 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D6A1B2C3D4E5F60718293A4B /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		35833346B846C29BF03DF674 /* DemocracyDJ */ = {
@@ -271,6 +260,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		D6B7C8D9E0F1A2B3C4D5E6F7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D6A1B2C3D4E5F60718293A4B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		4176B7142F973ECCE60B127E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -374,6 +374,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 3Q3NT65HWY;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -476,6 +477,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 3Q3NT65HWY;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
