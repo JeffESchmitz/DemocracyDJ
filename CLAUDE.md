@@ -62,6 +62,20 @@ open ios/DemocracyDJ.xcodeproj   # Open in Xcode
 4. **Idempotent Voting**: `QueueItem.voters` is `Set<String>`—duplicate votes are no-ops
 5. **Full Snapshots**: Broadcast entire `HostSnapshot` on every change (no diffing)
 
+## Architecture Decision Records (ADRs)
+
+ADRs document significant architectural decisions. Located in `docs/adr/`.
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [001](docs/adr/001-snapshot-strategy.md) | HostSnapshot Update Strategy | Accepted |
+| [002](docs/adr/002-peer-identity-mapping.md) | Peer Identity Mapping | Accepted |
+
+**When to create an ADR:**
+- Decisions that affect multiple components
+- Trade-offs that future developers should understand
+- Choices that are hard to reverse
+
 ## Coding Conventions
 
 ### TypeScript/React (Web)
