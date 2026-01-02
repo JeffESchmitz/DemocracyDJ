@@ -190,24 +190,35 @@ struct HostView: View {
         }
         // MARK: - Status Badge
         .overlay(alignment: .topTrailing) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(store.isHosting ? Color.green : Color.orange)
-                    .frame(width: 8, height: 8)
+            HStack(spacing: 12) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(store.isHosting ? Color.green : Color.orange)
+                        .frame(width: 8, height: 8)
 
-                Text("HOST")
-                    .font(.caption2)
-                    .fontWeight(.bold)
+                    Text("HOST")
+                        .font(.caption2)
+                        .fontWeight(.bold)
 
-                Text("Peers: \(store.connectedPeers.count)")
-                    .font(.caption2)
+                    Text("Peers: \(store.connectedPeers.count)")
+                        .font(.caption2)
+                }
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .clipShape(Capsule())
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(statusLabel)
+
+                Button {
+                    store.send(.exitTapped)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityLabel("Exit session")
             }
-            .padding(8)
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
             .padding()
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(statusLabel)
         }
     }
 

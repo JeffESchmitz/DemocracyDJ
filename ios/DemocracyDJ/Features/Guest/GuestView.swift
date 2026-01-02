@@ -37,6 +37,15 @@ struct GuestView: View {
                     .font(.headline)
 
                 Spacer()
+
+                Button {
+                    store.send(.exitTapped)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .accessibilityLabel("Exit session")
             }
 
             if case let .connected(host) = store.connectionStatus {

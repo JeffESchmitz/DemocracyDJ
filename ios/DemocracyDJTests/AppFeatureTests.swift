@@ -72,6 +72,30 @@ struct AppFeatureTests {
         await recorder.waitForCount(1)
         #expect(await recorder.count == 1)
     }
+
+    @Test func hostExitTappedTriggersExitSession() async {
+        let recorder = StopRecorder()
+        let store = TestStore(
+            initialState: AppFeature.State(
+                mode: .host(HostFeature.State(displayName: "Host")),
+                displayName: "Host"
+            )
+        ) {
+            AppFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(
+                onStop: { await recorder.record() }
+            )
+        }
+
+        await store.send(.host(.exitTapped))
+        await store.receive(\.exitSession) {
+            $0.mode = .modeSelection
+        }
+
+        await recorder.waitForCount(1)
+        #expect(await recorder.count == 1)
+    }
 }
 
 actor StopRecorder {

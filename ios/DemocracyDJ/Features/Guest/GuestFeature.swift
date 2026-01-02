@@ -29,6 +29,7 @@ struct GuestFeature {
         case startBrowsing(displayName: String)
         case stopBrowsing
         case connectToHost(Peer)
+        case exitTapped
 
         // MARK: - User Actions
         case voteTapped(songID: String)
@@ -85,6 +86,9 @@ struct GuestFeature {
                     },
                     .cancel(id: CancelID.multipeerEvents)
                 )
+
+            case .exitTapped:
+                return .none
 
             case let .connectToHost(host):
                 state.connectionStatus = .connecting(host: host)
