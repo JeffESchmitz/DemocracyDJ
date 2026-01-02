@@ -26,6 +26,11 @@ struct PlaybackStatus: Equatable, Sendable {
     static let notPlaying = PlaybackStatus(isPlaying: false, currentTime: 0, duration: 0)
 }
 
+enum MusicKitClientError: Error {
+    case songNotFound
+    case notAuthorized
+}
+
 extension MusicKitClient: DependencyKey {
     static let liveValue: MusicKitClient = .live
     static let testValue: MusicKitClient = .mock
@@ -40,8 +45,87 @@ extension DependencyValues {
 }
 
 extension MusicKitClient {
-    // Placeholder for future live implementation.
-    static let live: MusicKitClient = .mock
+    static let live: MusicKitClient = {
+        MusicKitClient(
+            requestAuthorization: {
+                await MusicAuthorization.request()
+            },
+            search: { query in
+                var request = MusicCatalogSearchRequest(term: query, types: [MusicKit.Song.self])
+                let response = try await request.response()
+
+                return response.songs.map { song in
+                    Shared.Song(
+                        id: song.id.rawValue,
+                        title: song.title,
+                        artist: song.artistName,
+                        albumArtURL: song.artwork?.url(width: 300, height: 300),
+                        duration: song.duration ?? 0
+                    )
+                }
+            },
+            play: { song in
+                guard MusicAuthorization.currentStatus == .authorized else {
+                    throw MusicKitClientError.notAuthorized
+                }
+
+                let request = MusicCatalogResourceRequest<MusicKit.Song>(
+                    matching: \.id,
+                    equalTo: MusicItemID(song.id)
+                )
+                let response = try await request.response()
+                guard let mkSong = response.items.first else {
+                    throw MusicKitClientError.songNotFound
+                }
+
+                ApplicationMusicPlayer.shared.queue = [mkSong]
+                try await ApplicationMusicPlayer.shared.play()
+            },
+            pause: {
+                ApplicationMusicPlayer.shared.pause()
+            },
+            skip: {
+                do {
+                    try await ApplicationMusicPlayer.shared.skipToNextEntry()
+                } catch {
+                    // Ignore playback errors; caller has no error channel.
+                }
+            },
+            playbackStatus: {
+                AsyncStream { continuation in
+                    func yieldStatus() {
+                        let player = ApplicationMusicPlayer.shared
+                        let isPlaying = player.state.playbackStatus == .playing
+                        let duration: TimeInterval
+                        if let song = player.queue.currentEntry?.item as? MusicKit.Song {
+                            duration = song.duration ?? 0
+                        } else {
+                            duration = 0
+                        }
+                        let status = PlaybackStatus(
+                            isPlaying: isPlaying,
+                            currentTime: player.playbackTime,
+                            duration: duration
+                        )
+                        continuation.yield(status)
+                    }
+
+                    yieldStatus()
+
+                    let task = Task {
+                        for await _ in ApplicationMusicPlayer.shared.state.objectWillChange.values {
+                            guard !Task.isCancelled else { break }
+                            yieldStatus()
+                        }
+                    }
+
+                    continuation.onTermination = { _ in
+                        task.cancel()
+                    }
+                }
+            }
+        )
+    }()
 
     static func mock(
         requestAuthorization: @escaping @Sendable () async -> MusicAuthorization.Status = {
