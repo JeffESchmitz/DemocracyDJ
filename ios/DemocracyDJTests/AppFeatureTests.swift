@@ -32,9 +32,11 @@ struct AppFeatureTests {
 
         store.exhaustivity = .off
         await store.send(.hostSelected)
+        await store.receive(\.host)
 
         if case let .host(hostState) = store.state.mode {
             #expect(hostState.myPeer.name == "DJ")
+            #expect(hostState.isHosting)
         } else {
             #expect(false, "Expected host mode")
         }
@@ -65,12 +67,27 @@ struct AppFeatureTests {
             )
         }
 
-        await store.send(.exitSession) {
+        await store.send(.exitSession)
+        await store.receive(\.guest)
+        await store.receive(\._resetToModeSelection) {
             $0.mode = .modeSelection
         }
 
         await recorder.waitForCount(1)
         #expect(await recorder.count == 1)
+    }
+
+    @Test func hostSelectedStartsHosting() async {
+        let store = TestStore(initialState: AppFeature.State(displayName: "Driver")) {
+            AppFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+        }
+
+        store.exhaustivity = .off
+        await store.send(.hostSelected)
+        await store.receive(\.host)
+        #expect(store.state.hostState?.isHosting == true)
     }
 
     @Test func hostExitTappedTriggersExitSession() async {
@@ -89,7 +106,9 @@ struct AppFeatureTests {
         }
 
         await store.send(.host(.exitTapped))
-        await store.receive(\.exitSession) {
+        await store.receive(\.exitSession)
+        await store.receive(\.host)
+        await store.receive(\._resetToModeSelection) {
             $0.mode = .modeSelection
         }
 

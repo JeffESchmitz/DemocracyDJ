@@ -48,6 +48,7 @@ struct AppFeature {
         case hostSelected
         case guestSelected
         case exitSession
+        case _resetToModeSelection
 
         case host(HostFeature.Action)
         case guest(GuestFeature.Action)
@@ -68,7 +69,7 @@ struct AppFeature {
                     return .none
                 }
                 state.mode = .host(HostFeature.State(displayName: trimmed))
-                return .none
+                return .send(.host(.startHosting))
 
             case .guestSelected:
                 let trimmed = state.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -79,10 +80,24 @@ struct AppFeature {
                 return .none
 
             case .exitSession:
-                state.mode = .modeSelection
-                return .run { _ in
-                    await multipeerClient.stop()
+                switch state.mode {
+                case .host:
+                    return .concatenate(
+                        .send(.host(.stopHosting)),
+                        .send(._resetToModeSelection)
+                    )
+                case .guest:
+                    return .concatenate(
+                        .send(.guest(.stopBrowsing)),
+                        .send(._resetToModeSelection)
+                    )
+                case .modeSelection:
+                    return .none
                 }
+
+            case ._resetToModeSelection:
+                state.mode = .modeSelection
+                return .none
 
             case .host(.exitTapped):
                 return .send(.exitSession)
