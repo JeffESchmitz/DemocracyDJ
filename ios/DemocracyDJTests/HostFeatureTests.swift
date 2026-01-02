@@ -43,9 +43,7 @@ struct HostFeatureTests {
             )
         }
 
-        await store.send(.playTapped) {
-            $0.isPlaying = true
-        }
+        await store.send(.playTapped)
 
         await recorder.waitForPlay()
         #expect(await recorder.playedSong == song)
@@ -94,9 +92,7 @@ struct HostFeatureTests {
             )
         }
 
-        await store.send(.pauseTapped) {
-            $0.isPlaying = false
-        }
+        await store.send(.pauseTapped)
 
         await recorder.waitForPause()
         #expect(await recorder.pauseCount == 1)
@@ -217,6 +213,9 @@ struct HostFeatureTests {
                     await recorder.record(name: displayName)
                 }
             )
+            $0.musicKitClient = .mock(
+                playbackStatus: { AsyncStream { _ in } }
+            )
         }
 
         await store.send(.startHosting) {
@@ -259,6 +258,9 @@ struct HostFeatureTests {
             HostFeature()
         } withDependencies: {
             $0.multipeerClient = .mock(events: { stream })
+            $0.musicKitClient = .mock(
+                playbackStatus: { AsyncStream { _ in } }
+            )
         }
 
         await store.send(.startHosting) {
@@ -290,6 +292,9 @@ struct HostFeatureTests {
             HostFeature()
         } withDependencies: {
             $0.multipeerClient = .mock(events: { await eventsCounter.nextStream() })
+            $0.musicKitClient = .mock(
+                playbackStatus: { AsyncStream { _ in } }
+            )
         }
 
         await store.send(.startHosting) {
@@ -303,6 +308,48 @@ struct HostFeatureTests {
             $0.isHosting = false
         }
         await store.finish()
+    }
+
+    @Test func playbackStatusUpdatesState() async {
+        let host = Peer(id: "host", name: "Host")
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        }
+
+        let status = PlaybackStatus(isPlaying: true, currentTime: 30, duration: 180)
+        await store.send(._playbackStatusUpdated(status)) {
+            $0.playbackStatus = status
+            $0.isPlaying = true
+        }
+    }
+
+    @Test func songFinishedAdvancesQueue() async {
+        let host = Peer(id: "host", name: "Host")
+        let firstSong = Song(id: "song-1", title: "One", artist: "Artist", albumArtURL: nil, duration: 180)
+        let secondSong = Song(id: "song-2", title: "Two", artist: "Artist", albumArtURL: nil, duration: 200)
+        let queued = QueueItem(id: secondSong.id, song: secondSong, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: firstSong,
+            queue: [queued],
+            isPlaying: true,
+            playbackStatus: PlaybackStatus(isPlaying: true, currentTime: 0, duration: 180)
+        )) {
+            HostFeature()
+        }
+
+        let finished = PlaybackStatus(isPlaying: false, currentTime: 179, duration: 180)
+        await store.send(._playbackStatusUpdated(finished)) {
+            $0.playbackStatus = finished
+            $0.isPlaying = false
+        }
+
+        await store.receive(.skipTapped) {
+            $0.nowPlaying = secondSong
+            $0.queue = []
+        }
+        await store.receive(._broadcastSnapshot)
     }
 }
 
