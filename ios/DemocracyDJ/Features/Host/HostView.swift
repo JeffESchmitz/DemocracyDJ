@@ -154,13 +154,25 @@ struct HostView: View {
 
             // MARK: - Bottom Section: Up Next
             VStack(alignment: .leading, spacing: 0) {
-                Text("Up Next")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(uiColor: .secondarySystemBackground))
-                    .accessibilityAddTraits(.isHeader)
+                HStack {
+                    Text("Up Next")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Spacer()
+
+                    Button {
+                        store.send(.addSongTapped)
+                    } label: {
+                        Label("Add", systemImage: "plus.circle.fill")
+                            .font(.subheadline)
+                    }
+                    .disabled(store.musicAuthorizationStatus != .authorized)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemBackground))
 
                 List {
                     // Render queue EXACTLY as given. Do not sort.
@@ -242,6 +254,75 @@ struct HostView: View {
                 .accessibilityLabel("Exit session")
             }
             .padding()
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { store.isSearchSheetPresented },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.dismissSearch)
+                    }
+                }
+            )
+        ) {
+            NavigationStack {
+                VStack(spacing: 0) {
+                    TextField(
+                        "Search Apple Music",
+                        text: Binding(
+                            get: { store.searchQuery },
+                            set: { store.send(.searchQueryChanged($0)) }
+                        )
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .padding()
+
+                    if store.isSearching {
+                        ProgressView()
+                            .padding()
+                    }
+
+                    List(store.searchResults) { song in
+                        let isDuplicate = store.queue.contains(where: { $0.id == song.id })
+                            || store.nowPlaying?.id == song.id
+
+                        Button {
+                            store.send(.songSelected(song))
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(song.title)
+                                        .font(.body)
+                                        .lineLimit(1)
+                                    Text(song.artist)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+
+                                if isDuplicate {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isDuplicate)
+                    }
+                    .listStyle(.plain)
+                }
+                .navigationTitle("Add Song")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            store.send(.dismissSearch)
+                        }
+                    }
+                }
+            }
         }
     }
 

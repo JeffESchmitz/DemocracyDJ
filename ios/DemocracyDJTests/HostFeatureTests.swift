@@ -351,6 +351,99 @@ struct HostFeatureTests {
         }
         await store.receive(._broadcastSnapshot)
     }
+
+    @Test func searchResultsReceivedUpdatesState() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            isSearching: true
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.searchResultsReceived([song])) {
+            $0.searchResults = [song]
+            $0.isSearching = false
+        }
+    }
+
+    @Test func songSelectedAddsToQueueAndBroadcasts() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            isSearchSheetPresented: true,
+            searchQuery: "test",
+            searchResults: [song],
+            isSearching: true
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.songSelected(song)) {
+            $0.isSearchSheetPresented = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+            $0.queue = [
+                QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+            ]
+        }
+        await store.receive(._broadcastSnapshot)
+    }
+
+    @Test func duplicateSongSelectedClosesSheetWithoutBroadcast() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+        let item = QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            queue: [item],
+            isSearchSheetPresented: true,
+            searchQuery: "test",
+            searchResults: [song],
+            isSearching: true
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.songSelected(song)) {
+            $0.isSearchSheetPresented = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+        }
+    }
+
+    @Test func searchQueryDebounced() async {
+        let host = Peer(id: "host", name: "Host")
+        let clock = TestClock()
+        let song = Song(id: "song-1", title: "Result", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+            $0.musicKitClient = .mock(search: { _ in [song] })
+        }
+
+        await store.send(.searchQueryChanged("test")) {
+            $0.searchQuery = "test"
+            $0.isSearching = true
+        }
+
+        await clock.advance(by: .milliseconds(300))
+
+        await store.receive(.searchResultsReceived([song])) {
+            $0.searchResults = [song]
+            $0.isSearching = false
+        }
+    }
 }
 
 actor SendRecorder {
