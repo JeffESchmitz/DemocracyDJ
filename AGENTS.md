@@ -16,6 +16,7 @@ This rule has NO exceptions. Even small fixes require a branch.
 - `web/` is the React + TypeScript prototype (Vite + Tailwind). Source lives in `web/src/`, assets in `web/src/assets/`, and static files in `web/public/`.
 - `shared/` is a Swift Package for shared models and logic, with tests in `shared/Tests/`.
 - `docs/` contains design exports and architecture diagrams.
+- `docs/adr/` holds architecture decision records (ADRs) that define critical system rules and contracts.
 
 ## Build, Test, and Development Commands
 - `cd web && npm install` installs web dependencies.
@@ -43,6 +44,11 @@ This rule has NO exceptions. Even small fixes require a branch.
 - Link relevant issues or design docs from `docs/` when applicable.
 - When editing PR bodies via `gh`, use actual newlines (not `\n`) so Markdown renders correctly.
 - For PR bodies, avoid literal `\n` sequences; use real line breaks with bullets or numbered lists.
+
+## ADR Guidance
+- Read relevant ADRs in `docs/adr/` before starting architecture-related work.
+- If a change contradicts an ADR, create a new ADR instead of silently diverging.
+- Current ADRs include: `docs/adr/001-snapshot-strategy.md` and `docs/adr/002-peer-identity-mapping.md`.
 
 ## Configuration & Tips
 - The web prototype is meant for fast iteration; avoid deep iOS dependencies in `web/`.
