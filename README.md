@@ -1,7 +1,7 @@
 # Democracy DJ
 
 <p align="center">
-  <img src="docs/images/4-Gemini_Generated_Image_n5id43n5id43n5id.png" alt="Democracy DJ hero artwork" width="800">
+  <img src="docs/images/5-ChatGPT_Generated_DemocracyDJ.png" alt="Democracy DJ hero artwork" width="800">
 </p>
 
 **Status:** Prototype (Winter Break 2025)
