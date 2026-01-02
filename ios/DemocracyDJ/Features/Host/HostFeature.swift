@@ -12,6 +12,7 @@ struct HostFeature {
         var connectedPeers: [Peer] = []
         var isHosting: Bool = false
         var isPlaying: Bool = false
+        var playbackStatus: PlaybackStatus = .notPlaying
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         var myPeer: Peer
 
@@ -22,6 +23,7 @@ struct HostFeature {
             connectedPeers: [Peer] = [],
             isHosting: Bool = false,
             isPlaying: Bool = false,
+            playbackStatus: PlaybackStatus = .notPlaying,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.myPeer = myPeer
@@ -30,6 +32,7 @@ struct HostFeature {
             self.connectedPeers = connectedPeers
             self.isHosting = isHosting
             self.isPlaying = isPlaying
+            self.playbackStatus = playbackStatus
             self.musicAuthorizationStatus = musicAuthorizationStatus
         }
 
@@ -40,6 +43,7 @@ struct HostFeature {
             connectedPeers: [Peer] = [],
             isHosting: Bool = false,
             isPlaying: Bool = false,
+            playbackStatus: PlaybackStatus = .notPlaying,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         ) {
             self.init(
@@ -49,6 +53,7 @@ struct HostFeature {
                 connectedPeers: connectedPeers,
                 isHosting: isHosting,
                 isPlaying: isPlaying,
+                playbackStatus: playbackStatus,
                 musicAuthorizationStatus: musicAuthorizationStatus
             )
         }
@@ -74,6 +79,7 @@ struct HostFeature {
         // Internal
         case _processIntent(GuestIntent, from: Peer)
         case _authorizationStatusUpdated(MusicAuthorization.Status)
+        case _playbackStatusUpdated(PlaybackStatus)
         case _broadcastSnapshot
 #if DEBUG
         case _debugSetNowPlaying
@@ -85,6 +91,7 @@ struct HostFeature {
 
     private enum CancelID {
         case multipeerEvents
+        case playbackStatus
     }
 
     var body: some ReducerOf<Self> {
@@ -109,10 +116,19 @@ struct HostFeature {
                     }
                     .cancellable(id: CancelID.multipeerEvents, cancelInFlight: true)
                 )
+                effects.append(
+                    .run { send in
+                        for await status in musicKitClient.playbackStatus() {
+                            await send(._playbackStatusUpdated(status))
+                        }
+                    }
+                    .cancellable(id: CancelID.playbackStatus, cancelInFlight: true)
+                )
 
             case .stopHosting:
                 state.isHosting = false
                 effects.append(.cancel(id: CancelID.multipeerEvents))
+                effects.append(.cancel(id: CancelID.playbackStatus))
                 effects.append(
                     .run { _ in
                         await multipeerClient.stop()
@@ -130,7 +146,6 @@ struct HostFeature {
                     effects.append(.send(.requestMusicAuthorization))
                     break
                 }
-                state.isPlaying = true
                 effects.append(
                     .run { _ in
                         try await musicKitClient.play(song)
@@ -141,7 +156,6 @@ struct HostFeature {
                 guard state.isPlaying else {
                     break
                 }
-                state.isPlaying = false
                 effects.append(
                     .run { _ in
                         await musicKitClient.pause()
@@ -220,6 +234,19 @@ struct HostFeature {
             case let ._authorizationStatusUpdated(status):
                 state.musicAuthorizationStatus = status
 
+            case let ._playbackStatusUpdated(status):
+                let wasPlaying = state.playbackStatus.isPlaying
+                state.playbackStatus = status
+                state.isPlaying = status.isPlaying
+
+                if wasPlaying,
+                   !status.isPlaying,
+                   status.duration > 0,
+                   status.currentTime >= status.duration - 1,
+                   state.nowPlaying != nil {
+                    effects.append(.send(.skipTapped))
+                }
+
             case ._broadcastSnapshot:
                 let snapshot = HostSnapshot(
                     nowPlaying: state.nowPlaying,
@@ -240,6 +267,7 @@ struct HostFeature {
                     duration: 180
                 )
                 state.isPlaying = false
+                state.playbackStatus = .notPlaying
 #endif
             }
 

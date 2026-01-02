@@ -40,6 +40,23 @@ struct HostView: View {
                             .accessibilityLabel("Artist: \(song.artist)")
                     }
 
+                    VStack(spacing: 4) {
+                        ProgressView(
+                            value: store.playbackStatus.currentTime,
+                            total: max(store.playbackStatus.duration, 1)
+                        )
+                        .progressViewStyle(.linear)
+
+                        HStack {
+                            Text(formatTime(store.playbackStatus.currentTime))
+                            Spacer()
+                            Text(formatTime(store.playbackStatus.duration))
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 40)
+
                     // Controls (Active)
                     HStack(spacing: 40) {
                         Button {
@@ -233,6 +250,13 @@ struct HostView: View {
             return "Hosting active, \(store.connectedPeers.count) peers connected"
         }
         return "Hosting inactive, \(store.connectedPeers.count) peers connected"
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let totalSeconds = max(Int(seconds.rounded()), 0)
+        let minutes = totalSeconds / 60
+        let remainder = totalSeconds % 60
+        return String(format: "%d:%02d", minutes, remainder)
     }
 }
 
