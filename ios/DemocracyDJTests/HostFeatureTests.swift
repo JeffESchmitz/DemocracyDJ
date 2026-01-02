@@ -160,6 +160,15 @@ struct HostFeatureTests {
         await store.finish()
     }
 
+    @Test func exitTappedIsNoOp() async {
+        let host = Peer(id: "host", name: "Host")
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        }
+
+        await store.send(.exitTapped)
+    }
+
     @Test func stopHostingCancelsEventStream() async {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")

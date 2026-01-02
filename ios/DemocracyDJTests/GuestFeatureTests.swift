@@ -122,6 +122,14 @@ struct GuestFeatureTests {
         #expect(last == host)
     }
 
+    @Test func exitTappedIsNoOp() async {
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        }
+
+        await store.send(.exitTapped)
+    }
+
     @Test func stopBrowsingCancelsEventStream() async {
         var continuation: AsyncStream<MultipeerEvent>.Continuation?
         let stream = AsyncStream<MultipeerEvent> { streamContinuation in

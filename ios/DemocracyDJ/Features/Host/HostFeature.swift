@@ -53,6 +53,7 @@ struct HostFeature {
         // Lifecycle
         case startHosting
         case stopHosting
+        case exitTapped
 
         // Playback
         case playTapped
@@ -109,6 +110,9 @@ struct HostFeature {
                         await multipeerClient.stop()
                     }
                 )
+
+            case .exitTapped:
+                break
 
             case .playTapped:
                 break

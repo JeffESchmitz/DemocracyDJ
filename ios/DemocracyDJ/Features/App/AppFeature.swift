@@ -84,6 +84,12 @@ struct AppFeature {
                     await multipeerClient.stop()
                 }
 
+            case .host(.exitTapped):
+                return .send(.exitSession)
+
+            case .guest(.exitTapped):
+                return .send(.exitSession)
+
             case .host:
                 return .none
 
