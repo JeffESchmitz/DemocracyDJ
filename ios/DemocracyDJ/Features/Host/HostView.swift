@@ -73,6 +73,13 @@ struct HostView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
                     .padding(.top, 16)
+
+                    Button("DEBUG: Set Now Playing") {
+                        store.send(._debugSetNowPlaying)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .padding(.top, 8)
 #endif
 
                 } else {
@@ -111,6 +118,13 @@ struct HostView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.orange)
                     .padding(.top, 16)
+
+                    Button("DEBUG: Set Now Playing") {
+                        store.send(._debugSetNowPlaying)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .padding(.top, 8)
 #endif
                 }
             }
