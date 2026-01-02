@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Foundation
 import Shared
 import Testing
 import struct MusicKit.MusicAuthorization
@@ -59,16 +60,17 @@ struct HostFeatureTests {
             musicAuthorizationStatus: .notDetermined
         )) {
             HostFeature()
-        } withDependencies: {
-            $0.musicKitClient = .mock(
-                requestAuthorization: { .authorized }
-            )
         }
 
-        await store.send(.playTapped)
-        await store.receive(\.requestMusicAuthorization)
-        await store.receive(\._authorizationStatusUpdated) {
-            $0.musicAuthorizationStatus = .authorized
+        await store.send(.playTapped) {
+            $0.alert = AlertState {
+                TextState("Music Access Required")
+            } actions: {
+                ButtonState(action: .openSettings) { TextState("Open Settings") }
+                ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+            } message: {
+                TextState("Please authorize Apple Music to play songs.")
+            }
         }
     }
 
@@ -96,6 +98,34 @@ struct HostFeatureTests {
 
         await recorder.waitForPause()
         #expect(await recorder.pauseCount == 1)
+    }
+
+    @Test func playbackErrorShowsAlert() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            musicAuthorizationStatus: .authorized
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(
+                play: { _ in throw TestMusicKitError.playbackFailed }
+            )
+        }
+
+        await store.send(.playTapped)
+        await store.receive(._playbackError("Playback failed")) {
+            $0.alert = AlertState {
+                TextState("Playback Error")
+            } actions: {
+                ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+            } message: {
+                TextState("Playback failed")
+            }
+        }
     }
 
     @Test func votingIsIdempotent() async {
@@ -445,6 +475,38 @@ struct HostFeatureTests {
         }
     }
 
+    @Test func searchErrorShowsAlert() async {
+        let host = Peer(id: "host", name: "Host")
+        let clock = TestClock()
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+            $0.musicKitClient = .mock(search: { _ in
+                throw TestMusicKitError.searchFailed
+            })
+        }
+
+        await store.send(.searchQueryChanged("test")) {
+            $0.searchQuery = "test"
+            $0.isSearching = true
+        }
+
+        await clock.advance(by: .milliseconds(300))
+
+        await store.receive(._searchError("Search failed")) {
+            $0.isSearching = false
+            $0.alert = AlertState {
+                TextState("Search Error")
+            } actions: {
+                ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+            } message: {
+                TextState("Search failed")
+            }
+        }
+    }
+
     @Test func dismissSearchClearsStateAndCancelsInFlightSearch() async {
         let host = Peer(id: "host", name: "Host")
         let clock = TestClock()
@@ -672,5 +734,19 @@ actor HostSearchRecorder {
 
     var count: Int {
         queries.count
+    }
+}
+
+enum TestMusicKitError: Error, LocalizedError {
+    case playbackFailed
+    case searchFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .playbackFailed:
+            return "Playback failed"
+        case .searchFailed:
+            return "Search failed"
+        }
     }
 }
