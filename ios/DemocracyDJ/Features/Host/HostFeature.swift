@@ -75,6 +75,9 @@ struct HostFeature {
         case _processIntent(GuestIntent, from: Peer)
         case _authorizationStatusUpdated(MusicAuthorization.Status)
         case _broadcastSnapshot
+#if DEBUG
+        case _debugSetNowPlaying
+#endif
     }
 
     @Dependency(\.multipeerClient) private var multipeerClient
@@ -226,6 +229,18 @@ struct HostFeature {
                 return .run { _ in
                     try? await multipeerClient.send(.stateUpdate(snapshot), nil)
                 }
+
+#if DEBUG
+            case ._debugSetNowPlaying:
+                state.nowPlaying = Song(
+                    id: "debug-song",
+                    title: "Debug Anthem",
+                    artist: "Codex",
+                    albumArtURL: nil,
+                    duration: 180
+                )
+                state.isPlaying = false
+#endif
             }
 
             if needsBroadcast {
