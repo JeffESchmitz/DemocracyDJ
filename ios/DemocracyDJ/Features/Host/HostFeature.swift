@@ -14,6 +14,10 @@ struct HostFeature {
         var isPlaying: Bool = false
         var playbackStatus: PlaybackStatus = .notPlaying
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+        var isSearchSheetPresented: Bool = false
+        var searchQuery: String = ""
+        var searchResults: [Song] = []
+        var isSearching: Bool = false
         var myPeer: Peer
 
         init(
@@ -24,7 +28,11 @@ struct HostFeature {
             isHosting: Bool = false,
             isPlaying: Bool = false,
             playbackStatus: PlaybackStatus = .notPlaying,
-            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined,
+            isSearchSheetPresented: Bool = false,
+            searchQuery: String = "",
+            searchResults: [Song] = [],
+            isSearching: Bool = false
         ) {
             self.myPeer = myPeer
             self.nowPlaying = nowPlaying
@@ -34,6 +42,10 @@ struct HostFeature {
             self.isPlaying = isPlaying
             self.playbackStatus = playbackStatus
             self.musicAuthorizationStatus = musicAuthorizationStatus
+            self.isSearchSheetPresented = isSearchSheetPresented
+            self.searchQuery = searchQuery
+            self.searchResults = searchResults
+            self.isSearching = isSearching
         }
 
         init(
@@ -44,7 +56,11 @@ struct HostFeature {
             isHosting: Bool = false,
             isPlaying: Bool = false,
             playbackStatus: PlaybackStatus = .notPlaying,
-            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+            musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined,
+            isSearchSheetPresented: Bool = false,
+            searchQuery: String = "",
+            searchResults: [Song] = [],
+            isSearching: Bool = false
         ) {
             self.init(
                 myPeer: Peer(name: displayName),
@@ -54,7 +70,11 @@ struct HostFeature {
                 isHosting: isHosting,
                 isPlaying: isPlaying,
                 playbackStatus: playbackStatus,
-                musicAuthorizationStatus: musicAuthorizationStatus
+                musicAuthorizationStatus: musicAuthorizationStatus,
+                isSearchSheetPresented: isSearchSheetPresented,
+                searchQuery: searchQuery,
+                searchResults: searchResults,
+                isSearching: isSearching
             )
         }
     }
@@ -69,6 +89,13 @@ struct HostFeature {
         case playTapped
         case pauseTapped
         case skipTapped
+
+        // Search
+        case addSongTapped
+        case searchQueryChanged(String)
+        case searchResultsReceived([Song])
+        case songSelected(Song)
+        case dismissSearch
 
         // Authorization
         case requestMusicAuthorization
@@ -88,10 +115,12 @@ struct HostFeature {
 
     @Dependency(\.multipeerClient) private var multipeerClient
     @Dependency(\.musicKitClient) private var musicKitClient
+    @Dependency(\.continuousClock) private var clock
 
     private enum CancelID {
         case multipeerEvents
         case playbackStatus
+        case search
     }
 
     var body: some ReducerOf<Self> {
@@ -172,6 +201,61 @@ struct HostFeature {
                     state.nowPlaying = state.queue.removeFirst().song
                     needsBroadcast = true
                 }
+
+            case .addSongTapped:
+                state.isSearchSheetPresented = true
+
+            case let .searchQueryChanged(query):
+                state.searchQuery = query
+                guard !query.isEmpty else {
+                    state.searchResults = []
+                    state.isSearching = false
+                    effects.append(.cancel(id: CancelID.search))
+                    break
+                }
+
+                state.isSearching = true
+                effects.append(
+                    .run { send in
+                        try await clock.sleep(for: .milliseconds(300))
+                        let results = try await musicKitClient.search(query)
+                        await send(.searchResultsReceived(results))
+                    }
+                    .cancellable(id: CancelID.search, cancelInFlight: true)
+                )
+
+            case let .searchResultsReceived(results):
+                state.isSearching = false
+                state.searchResults = results
+
+            case let .songSelected(song):
+                let isDuplicate = state.queue.contains(where: { $0.id == song.id }) || state.nowPlaying?.id == song.id
+                state.isSearchSheetPresented = false
+                state.searchQuery = ""
+                state.searchResults = []
+                state.isSearching = false
+
+                guard !isDuplicate else {
+                    effects.append(.cancel(id: CancelID.search))
+                    break
+                }
+
+                let item = QueueItem(
+                    id: song.id,
+                    song: song,
+                    addedBy: state.myPeer,
+                    voters: []
+                )
+                state.queue.append(item)
+                state.queue = sortedQueue(state.queue)
+                needsBroadcast = true
+
+            case .dismissSearch:
+                state.isSearchSheetPresented = false
+                state.searchQuery = ""
+                state.searchResults = []
+                state.isSearching = false
+                effects.append(.cancel(id: CancelID.search))
 
             case .requestMusicAuthorization:
                 return .run { send in
