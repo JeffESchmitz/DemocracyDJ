@@ -24,6 +24,84 @@ struct HostFeatureTests {
         }
     }
 
+    @Test func playTappedStartsPlayback() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+        let recorder = MusicPlaybackRecorder()
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            musicAuthorizationStatus: .authorized
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(
+                play: { played in
+                    await recorder.recordPlay(played)
+                }
+            )
+        }
+
+        await store.send(.playTapped) {
+            $0.isPlaying = true
+        }
+
+        await recorder.waitForPlay()
+        #expect(await recorder.playedSong == song)
+    }
+
+    @Test func playTappedRequiresAuthorization() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            musicAuthorizationStatus: .notDetermined
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(
+                requestAuthorization: { .authorized }
+            )
+        }
+
+        await store.send(.playTapped)
+        await store.receive(\.requestMusicAuthorization)
+        await store.receive(\._authorizationStatusUpdated) {
+            $0.musicAuthorizationStatus = .authorized
+        }
+    }
+
+    @Test func pauseTappedStopsPlayback() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+        let recorder = MusicPlaybackRecorder()
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            isPlaying: true,
+            musicAuthorizationStatus: .authorized
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(
+                pause: {
+                    await recorder.recordPause()
+                }
+            )
+        }
+
+        await store.send(.pauseTapped) {
+            $0.isPlaying = false
+        }
+
+        await recorder.waitForPause()
+        #expect(await recorder.pauseCount == 1)
+    }
+
     @Test func votingIsIdempotent() async {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")
@@ -276,6 +354,45 @@ actor StartCountRecorder {
             }
             try? await Task.sleep(for: .milliseconds(10))
         }
+    }
+}
+
+actor MusicPlaybackRecorder {
+    private var play: Song?
+    private var pauseCalls = 0
+
+    func recordPlay(_ song: Song) {
+        play = song
+    }
+
+    func recordPause() {
+        pauseCalls += 1
+    }
+
+    func waitForPlay() async {
+        for _ in 0..<100 {
+            if play != nil {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
+    func waitForPause() async {
+        for _ in 0..<100 {
+            if pauseCalls > 0 {
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
+    var playedSong: Song? {
+        play
+    }
+
+    var pauseCount: Int {
+        pauseCalls
     }
 }
 
