@@ -1,5 +1,9 @@
 # Democracy DJ
 
+<p align="center">
+  <img src="docs/images/4-Gemini_Generated_Image_n5id43n5id43n5id.png" alt="Democracy DJ hero artwork" width="800">
+</p>
+
 **Status:** Prototype (Winter Break 2025)
 
 **Stack:** Swift 6 (iOS), React/TypeScript (Web PoC)
