@@ -223,6 +223,7 @@ struct GuestView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .accessibilityIdentifier("add_song_button")
             }
             .listStyle(.plain)
         }

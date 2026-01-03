@@ -20,6 +20,7 @@ struct GuestSearchSheet: View {
                 .padding()
                 .focused($isSearchFocused)
                 .textInputAutocapitalization(.never)
+                .accessibilityIdentifier("song_search_field")
 
                 content
             }

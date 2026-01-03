@@ -37,6 +37,7 @@ struct ModeSelectionView: View {
                         isPrimary: true,
                         action: { viewStore.send(.hostSelected) }
                     )
+                    .accessibilityIdentifier("host_start_session_button")
 
                     modeButton(
                         title: "I'm a Passenger",
@@ -45,6 +46,7 @@ struct ModeSelectionView: View {
                         isPrimary: false,
                         action: { viewStore.send(.guestSelected) }
                     )
+                    .accessibilityIdentifier("peer_join_session_button")
                 }
                 .disabled(isNameEmpty(viewStore.displayName))
 

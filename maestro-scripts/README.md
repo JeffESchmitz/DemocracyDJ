@@ -45,14 +45,22 @@ maestro test flow.yml
 Terminal A (Host):
 
 ```bash
-maestro test --device "iPhone 17 Pro Max" maestro-scripts/host_flow.yaml
+maestro --device 394C4328-6DC1-4BDD-827F-88E444EC593F test maestro-scripts/host_flow.yaml
 ```
 
 Terminal B (Peer):
 
 ```bash
-maestro test --device "iPhone 17 Pro" maestro-scripts/peer_flow.yaml
+maestro --device 4DC394C5-AB52-44E4-80AA-F860F074C8F9 test maestro-scripts/peer_flow.yaml
 ```
+
+To find booted device IDs:
+
+```bash
+xcrun simctl list devices booted
+```
+
+If you want to shard tests across multiple devices, see Maestro’s `--shard-all` / `--shard-split` options.
 
 ## Add a New Scenario
 
@@ -62,6 +70,19 @@ maestro test --device "iPhone 17 Pro" maestro-scripts/peer_flow.yaml
 
 ## Known Limitations
 
-- Relies on visible text and accessibility labels (no explicit identifiers yet).
+- Uses explicit accessibility identifiers for stable selectors.
 - Apple Music authorization must be satisfied for search to return results.
 - If simulator device names differ, update commands or `setup.sh` defaults.
+
+## Accessibility Identifiers
+
+These identifiers are present in the app for automation:
+
+- `host_start_session_button`
+- `peer_join_session_button`
+- `song_search_field`
+- `add_song_button`
+- `shared_queue_view`
+- `song_row_<id>`
+
+TODO: Add a stable `confirmation_message` identifier when a visible confirmation UI exists.

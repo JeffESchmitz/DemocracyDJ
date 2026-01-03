@@ -6,23 +6,38 @@ appId: com.jeffschmitz.DemocracyDJ
 # TODO: Verify accessibilityIdentifier for name field and buttons if these labels change.
 - tapOn: "Enter your name"
 - inputText: "Peer"
-- tapOn: "I'm a Passenger"
+- tapOn:
+    id: "peer_join_session_button"
 
 # Join host
 # TODO: Verify visible host name text if display name differs from "Host".
-- waitFor: "Nearby Parties"
-- waitFor: "Host"
+- extendedWaitUntil:
+    visible: "Nearby Parties"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "Host"
+    timeout: 60000
 - tapOn: "Host"
-- waitFor: "Connected"
+- extendedWaitUntil:
+    visible: "Connected"
+    timeout: 60000
 
 # Suggest a song
-- tapOn: "Search Apple Music"
-- waitFor: "Suggest a Song"
-- tapOn: "Search Apple Music"
+- tapOn:
+    id: "add_song_button"
+- extendedWaitUntil:
+    visible: "Suggest a Song"
+    timeout: 60000
+- tapOn:
+    id: "song_search_field"
 - inputText: "Hendrix"
-- waitFor: "All Along the Watchtower"
+- extendedWaitUntil:
+    visible: "All Along the Watchtower"
+    timeout: 60000
 - tapOn: "All Along the Watchtower"
 
 # Confirm suggestion reflected in queue
 # TODO: Verify if queue text differs on guest
-- waitFor: "All Along the Watchtower"
+- extendedWaitUntil:
+    visible: "All Along the Watchtower"
+    timeout: 60000
