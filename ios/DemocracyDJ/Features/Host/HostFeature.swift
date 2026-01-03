@@ -15,12 +15,17 @@ struct HostFeature {
         var isPlaying: Bool = false
         var playbackStatus: PlaybackStatus = .notPlaying
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+        var subscriptionStatus: SubscriptionStatus = .unknown
         var isSearchSheetPresented: Bool = false
         var searchQuery: String = ""
         var searchResults: [Song] = []
         var isSearching: Bool = false
         var myPeer: Peer
         @Presents var alert: AlertState<Action.Alert>?
+
+        var canPlay: Bool {
+            musicAuthorizationStatus == .authorized && subscriptionStatus.canPlayCatalogContent
+        }
 
         init(
             myPeer: Peer,
@@ -31,6 +36,7 @@ struct HostFeature {
             isPlaying: Bool = false,
             playbackStatus: PlaybackStatus = .notPlaying,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined,
+            subscriptionStatus: SubscriptionStatus = .unknown,
             isSearchSheetPresented: Bool = false,
             searchQuery: String = "",
             searchResults: [Song] = [],
@@ -44,6 +50,7 @@ struct HostFeature {
             self.isPlaying = isPlaying
             self.playbackStatus = playbackStatus
             self.musicAuthorizationStatus = musicAuthorizationStatus
+            self.subscriptionStatus = subscriptionStatus
             self.isSearchSheetPresented = isSearchSheetPresented
             self.searchQuery = searchQuery
             self.searchResults = searchResults
@@ -59,6 +66,7 @@ struct HostFeature {
             isPlaying: Bool = false,
             playbackStatus: PlaybackStatus = .notPlaying,
             musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined,
+            subscriptionStatus: SubscriptionStatus = .unknown,
             isSearchSheetPresented: Bool = false,
             searchQuery: String = "",
             searchResults: [Song] = [],
@@ -73,6 +81,7 @@ struct HostFeature {
                 isPlaying: isPlaying,
                 playbackStatus: playbackStatus,
                 musicAuthorizationStatus: musicAuthorizationStatus,
+                subscriptionStatus: subscriptionStatus,
                 isSearchSheetPresented: isSearchSheetPresented,
                 searchQuery: searchQuery,
                 searchResults: searchResults,
@@ -115,6 +124,7 @@ struct HostFeature {
         // Internal
         case _processIntent(GuestIntent, from: Peer)
         case _authorizationStatusUpdated(MusicAuthorization.Status)
+        case _subscriptionStatusUpdated(SubscriptionStatus)
         case _playbackStatusUpdated(PlaybackStatus)
         case _playbackError(String)
         case _searchError(String)
@@ -165,6 +175,12 @@ struct HostFeature {
                     }
                     .cancellable(id: CancelID.playbackStatus, cancelInFlight: true)
                 )
+                effects.append(
+                    .run { send in
+                        let status = await musicKitClient.checkSubscription()
+                        await send(._subscriptionStatusUpdated(status))
+                    }
+                )
 
             case .stopHosting:
                 state.isHosting = false
@@ -191,6 +207,16 @@ struct HostFeature {
                         ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
                     } message: {
                         TextState("Please authorize Apple Music to play songs.")
+                    }
+                    break
+                }
+                guard state.subscriptionStatus.canPlayCatalogContent else {
+                    state.alert = AlertState {
+                        TextState("Apple Music Subscription Required")
+                    } actions: {
+                        ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+                    } message: {
+                        TextState("An active Apple Music subscription is required to play songs.")
                     }
                     break
                 }
@@ -346,6 +372,9 @@ struct HostFeature {
 
             case let ._authorizationStatusUpdated(status):
                 state.musicAuthorizationStatus = status
+
+            case let ._subscriptionStatusUpdated(status):
+                state.subscriptionStatus = status
 
             case let ._playbackStatusUpdated(status):
                 let wasPlaying = state.playbackStatus.isPlaying

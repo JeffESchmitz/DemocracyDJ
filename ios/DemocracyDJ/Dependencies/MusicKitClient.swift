@@ -16,6 +16,7 @@ struct MusicKitClient: Sendable {
     var pause: @Sendable () async -> Void
     var skip: @Sendable () async -> Void
     var playbackStatus: @Sendable () -> AsyncStream<PlaybackStatus>
+    var checkSubscription: @Sendable () async -> SubscriptionStatus
 }
 
 struct PlaybackStatus: Equatable, Sendable {
@@ -24,6 +25,13 @@ struct PlaybackStatus: Equatable, Sendable {
     var duration: TimeInterval
 
     static let notPlaying = PlaybackStatus(isPlaying: false, currentTime: 0, duration: 0)
+}
+
+struct SubscriptionStatus: Equatable, Sendable {
+    var canPlayCatalogContent: Bool
+    var canBecomeSubscriber: Bool
+
+    static let unknown = SubscriptionStatus(canPlayCatalogContent: false, canBecomeSubscriber: false)
 }
 
 enum MusicKitClientError: Error {
@@ -123,6 +131,27 @@ extension MusicKitClient {
                         task.cancel()
                     }
                 }
+            },
+            checkSubscription: {
+                await withTaskGroup(of: SubscriptionStatus?.self) { group in
+                    group.addTask {
+                        for await subscription in MusicSubscription.subscriptionUpdates {
+                            return SubscriptionStatus(
+                                canPlayCatalogContent: subscription.canPlayCatalogContent,
+                                canBecomeSubscriber: subscription.canBecomeSubscriber
+                            )
+                        }
+                        return nil
+                    }
+                    group.addTask {
+                        try? await Task.sleep(for: .seconds(2))
+                        return nil
+                    }
+
+                    let result = await group.next() ?? nil
+                    group.cancelAll()
+                    return result ?? .unknown
+                }
             }
         )
     }()
@@ -139,7 +168,8 @@ extension MusicKitClient {
             AsyncStream { continuation in
                 continuation.yield(PlaybackStatus.notPlaying)
             }
-        }
+        },
+        checkSubscription: @escaping @Sendable () async -> SubscriptionStatus = { .unknown }
     ) -> Self {
         MusicKitClient(
             requestAuthorization: requestAuthorization,
@@ -147,7 +177,8 @@ extension MusicKitClient {
             play: play,
             pause: pause,
             skip: skip,
-            playbackStatus: playbackStatus
+            playbackStatus: playbackStatus,
+            checkSubscription: checkSubscription
         )
     }
 
@@ -163,6 +194,7 @@ extension MusicKitClient {
             AsyncStream { continuation in
                 continuation.yield(PlaybackStatus.notPlaying)
             }
-        }
+        },
+        checkSubscription: { .unknown }
     )
 }
