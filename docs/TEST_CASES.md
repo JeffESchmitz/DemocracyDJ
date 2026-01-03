@@ -160,6 +160,9 @@ This document tracks manual test cases with step-by-step reproduction.
 2. On the guest, confirm nearby hosts appear without duplicates.
 3. Tap a host; confirm the status changes to connecting, then connected.
 
+Notes:
+- Simulator-only proof recorded on 2026-01-03 (Host + Guest connected with snapshots). Physical-device verification still required.
+
 ### Connect-2: Host Snapshot Broadcasts on Change
 
 1. Connect a guest to the host.
