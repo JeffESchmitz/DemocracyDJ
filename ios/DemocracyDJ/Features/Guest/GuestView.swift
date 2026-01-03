@@ -7,6 +7,15 @@ struct GuestView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+#if DEBUG
+            Button("DEBUG: Load Sample Queue") {
+                store.send(.debugLoadSample)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .padding(.top, 8)
+#endif
+
             connectionStatusSection
 
             Divider()
@@ -214,7 +223,6 @@ struct GuestView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(!isConnected)
             }
             .listStyle(.plain)
         }

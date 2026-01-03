@@ -52,6 +52,10 @@ struct GuestFeature {
         case _snapshotReceived(HostSnapshot)
         case _connectionFailed(String)
         case _searchError(String)
+
+#if DEBUG
+        case debugLoadSample
+#endif
     }
 
     @Dependency(\.multipeerClient) var multipeerClient
@@ -136,9 +140,13 @@ struct GuestFeature {
                 state.pendingVotes.insert(songID)
 
                 return .run { _ in
-                    let intent = GuestIntent.vote(songID: songID)
-                    let message = MeshMessage.intent(intent)
-                    try await multipeerClient.send(message, host)
+                    do {
+                        let intent = GuestIntent.vote(songID: songID)
+                        let message = MeshMessage.intent(intent)
+                        try await multipeerClient.send(message, host)
+                    } catch {
+                        // Ignore send failures for now; host may be unavailable.
+                    }
                 }
 
             case let .suggestSongTapped(song):
@@ -247,7 +255,60 @@ struct GuestFeature {
                 state.isSearching = false
                 state.searchError = message
                 return .none
+
+#if DEBUG
+            case .debugLoadSample:
+                let host = Peer(name: "Debug Host")
+                state.myPeer = state.myPeer ?? Peer(id: uuid().uuidString, name: "Guest")
+                state.connectionStatus = .connected(host: host)
+                state.hostSnapshot = Self.debugSnapshot
+                state.pendingVotes = ["song-debug-3"]
+                return .none
+#endif
             }
         }
     }
 }
+
+#if DEBUG
+private extension GuestFeature {
+    static var debugSnapshot: HostSnapshot {
+        HostSnapshot(
+            nowPlaying: Song(
+                id: "song-debug-1",
+                title: "Starlight",
+                artist: "Muse",
+                albumArtURL: nil,
+                duration: 240
+            ),
+            queue: [
+                QueueItem(
+                    id: "song-debug-2",
+                    song: Song(
+                        id: "song-debug-2",
+                        title: "Midnight City",
+                        artist: "M83",
+                        albumArtURL: nil,
+                        duration: 260
+                    ),
+                    addedBy: Peer(name: "Alex"),
+                    voters: ["guest"]
+                ),
+                QueueItem(
+                    id: "song-debug-3",
+                    song: Song(
+                        id: "song-debug-3",
+                        title: "Electric Feel",
+                        artist: "MGMT",
+                        albumArtURL: nil,
+                        duration: 230
+                    ),
+                    addedBy: Peer(name: "Sam"),
+                    voters: []
+                )
+            ],
+            connectedPeers: [Peer(name: "Alex"), Peer(name: "Sam")]
+        )
+    }
+}
+#endif
