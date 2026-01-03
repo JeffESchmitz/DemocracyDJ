@@ -1,0 +1,20 @@
+appId: com.jeffschmitz.DemocracyDJ
+---
+- launchApp
+
+# Mode selection
+# TODO: Verify accessibilityIdentifier for name field and buttons if these labels change.
+- tapOn: "Enter your name"
+- inputText: "Host"
+- tapOn: "I'm Driving"
+
+# Host is active
+- waitFor: "HOST"
+
+# Wait for peer to connect
+# TODO: Verify exact peer count text in host status badge.
+- waitFor: "Peers: 1"
+
+# Wait for peer-driven update (song suggestion)
+# TODO: Verify visible text if song name differs
+- waitFor: "All Along the Watchtower"

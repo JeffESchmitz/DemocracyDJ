@@ -1,0 +1,28 @@
+appId: com.jeffschmitz.DemocracyDJ
+---
+- launchApp
+
+# Mode selection
+# TODO: Verify accessibilityIdentifier for name field and buttons if these labels change.
+- tapOn: "Enter your name"
+- inputText: "Peer"
+- tapOn: "I'm a Passenger"
+
+# Join host
+# TODO: Verify visible host name text if display name differs from "Host".
+- waitFor: "Nearby Parties"
+- waitFor: "Host"
+- tapOn: "Host"
+- waitFor: "Connected"
+
+# Suggest a song
+- tapOn: "Search Apple Music"
+- waitFor: "Suggest a Song"
+- tapOn: "Search Apple Music"
+- inputText: "Hendrix"
+- waitFor: "All Along the Watchtower"
+- tapOn: "All Along the Watchtower"
+
+# Confirm suggestion reflected in queue
+# TODO: Verify if queue text differs on guest
+- waitFor: "All Along the Watchtower"
