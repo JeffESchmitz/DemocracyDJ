@@ -7,6 +7,15 @@ struct GuestView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+#if DEBUG
+            Button("DEBUG: Load Sample Queue") {
+                store.send(.debugLoadSample)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .padding(.top, 8)
+#endif
+
             connectionStatusSection
 
             Divider()
@@ -177,39 +186,14 @@ struct GuestView: View {
                 .padding(.top, 12)
 
             if let queue = store.hostSnapshot?.queue {
-                List {
-                    ForEach(queue) { item in
-                        HStack(spacing: 12) {
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.2))
-                                .frame(width: 44, height: 44)
-                                .cornerRadius(6)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(item.song.title)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .lineLimit(1)
-
-                                Text(item.song.artist)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-
-                                Text("Added by \(item.addedBy.name)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
-
-                            voteBadge(count: item.voteCount)
-
-                            voteButton(for: item)
-                        }
-                        .opacity(pendingVotesContains(item.id) ? 0.6 : 1.0)
+                GuestQueueView(
+                    queue: queue,
+                    pendingVotes: store.pendingVotes,
+                    myPeerID: store.myPeer?.id,
+                    onVote: { songID in
+                        store.send(.voteTapped(songID: songID))
                     }
-                }
-                .listStyle(.plain)
+                )
             } else {
                 Text("Waiting for host...")
                     .foregroundStyle(.secondary)
@@ -239,47 +223,9 @@ struct GuestView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .disabled(!isConnected)
             }
             .listStyle(.plain)
         }
-    }
-
-    private func voteBadge(count: Int) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "hand.thumbsup.fill")
-                .font(.caption)
-            Text("\(count)")
-                .font(.caption)
-                .fontWeight(.bold)
-                .monospacedDigit()
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Color.secondary.opacity(0.1))
-        .clipShape(Capsule())
-    }
-
-    private func voteButton(for item: QueueItem) -> some View {
-        let isPending = pendingVotesContains(item.id)
-
-        return Button {
-            store.send(.voteTapped(songID: item.id))
-        } label: {
-            if isPending {
-                ProgressView()
-                    .frame(width: 24, height: 24)
-            } else {
-                Image(systemName: "hand.thumbsup")
-                    .font(.title3)
-            }
-        }
-        .disabled(isPending)
-        .accessibilityLabel(isPending ? "Vote pending" : "Upvote")
-    }
-
-    private func pendingVotesContains(_ songID: String) -> Bool {
-        store.pendingVotes.contains(songID)
     }
 
     private var isConnecting: Bool {
@@ -369,7 +315,7 @@ struct GuestView: View {
     GuestView(
         store: Store(
             initialState: GuestFeature.State(
-                myPeer: Peer(name: "Guest"),
+                myPeer: Peer(id: "guest", name: "Guest"),
                 connectionStatus: .connected(host: host),
                 hostSnapshot: snapshot,
                 pendingVotes: ["song-3"],

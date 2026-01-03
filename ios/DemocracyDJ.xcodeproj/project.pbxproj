@@ -10,6 +10,8 @@
 		3C6D8F2A1B4E7C9D0F1A2B3C /* HostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */; };
 		C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */; };
 		C1D2E3F405162738495A6B7C /* AlbumArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */; };
+		E1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */; };
+		E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */; };
 		4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */; };
 		52D09770ADE9BD3F462D6740 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = A5444B95CCD439271AAF0C92 /* Shared */; };
 		5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */; };
@@ -42,6 +44,8 @@
 
 /* Begin PBXFileReference section */
 		0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestView.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueView.swift; sourceTree = "<group>"; };
+		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
 		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F7081920A1B2C /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
 		1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeature.swift; sourceTree = "<group>"; };
@@ -128,6 +132,8 @@
 			children = (
 				8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */,
 				0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */,
+				F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */,
+				F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */,
 				C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */,
 			);
 			path = Guest;
@@ -303,6 +309,8 @@
 				C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */,
 				4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */,
 				5E6F7081920A1B2C3D4E5F60 /* GuestView.swift in Sources */,
+				E1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift in Sources */,
+				E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */,
 				B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */,
 				7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
