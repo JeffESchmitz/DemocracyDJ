@@ -14,6 +14,11 @@ struct GuestFeature {
         var hostSnapshot: HostSnapshot?
         var pendingVotes: Set<String> = []
         var availableHosts: IdentifiedArrayOf<Peer> = []
+        var showSearchSheet: Bool = false
+        var searchQuery: String = ""
+        var searchResults: [Song] = []
+        var isSearching: Bool = false
+        var searchError: String?
 
         enum ConnectionStatus: Equatable {
             case disconnected
@@ -34,6 +39,11 @@ struct GuestFeature {
         // MARK: - User Actions
         case voteTapped(songID: String)
         case suggestSongTapped(Song)
+        case searchButtonTapped
+        case searchQueryChanged(String)
+        case searchResultsReceived([Song])
+        case songSelected(Song)
+        case dismissSearch
 
         // MARK: - Network
         case multipeerEvent(MultipeerEvent)
@@ -41,13 +51,17 @@ struct GuestFeature {
         // MARK: - Internal
         case _snapshotReceived(HostSnapshot)
         case _connectionFailed(String)
+        case _searchError(String)
     }
 
     @Dependency(\.multipeerClient) var multipeerClient
+    @Dependency(\.musicKitClient) var musicKitClient
+    @Dependency(\.continuousClock) var clock
     @Dependency(\.uuid) var uuid
 
     private enum CancelID {
         case multipeerEvents
+        case search
     }
 
     var body: some ReducerOf<Self> {
@@ -79,12 +93,18 @@ struct GuestFeature {
                 state.availableHosts.removeAll()
                 state.hostSnapshot = nil
                 state.pendingVotes.removeAll()
+                state.showSearchSheet = false
+                state.searchQuery = ""
+                state.searchResults = []
+                state.isSearching = false
+                state.searchError = nil
 
                 return .merge(
                     .run { _ in
                         await multipeerClient.stop()
                     },
-                    .cancel(id: CancelID.multipeerEvents)
+                    .cancel(id: CancelID.multipeerEvents),
+                    .cancel(id: CancelID.search)
                 )
 
             case .exitTapped:
@@ -132,6 +152,56 @@ struct GuestFeature {
                     try await multipeerClient.send(message, host)
                 }
 
+            case .searchButtonTapped:
+                state.showSearchSheet = true
+                state.searchError = nil
+                return .none
+
+            case let .searchQueryChanged(query):
+                state.searchQuery = query
+                state.searchError = nil
+
+                guard query.count >= 2 else {
+                    state.searchResults = []
+                    state.isSearching = false
+                    return .cancel(id: CancelID.search)
+                }
+
+                state.isSearching = true
+                return .run { send in
+                    do {
+                        try await clock.sleep(for: .milliseconds(300))
+                        let results = try await musicKitClient.search(query)
+                        await send(.searchResultsReceived(results))
+                    } catch is CancellationError {
+                        return
+                    } catch {
+                        await send(._searchError(error.localizedDescription))
+                    }
+                }
+                .cancellable(id: CancelID.search, cancelInFlight: true)
+
+            case let .searchResultsReceived(results):
+                state.isSearching = false
+                state.searchResults = results
+                return .none
+
+            case let .songSelected(song):
+                state.showSearchSheet = false
+                state.searchQuery = ""
+                state.searchResults = []
+                state.isSearching = false
+                state.searchError = nil
+                return .send(.suggestSongTapped(song))
+
+            case .dismissSearch:
+                state.showSearchSheet = false
+                state.searchQuery = ""
+                state.searchResults = []
+                state.isSearching = false
+                state.searchError = nil
+                return .cancel(id: CancelID.search)
+
             // MARK: - Network Events
 
             case let .multipeerEvent(event):
@@ -171,6 +241,11 @@ struct GuestFeature {
             case let ._snapshotReceived(snapshot):
                 state.hostSnapshot = snapshot
                 state.pendingVotes.removeAll()
+                return .none
+
+            case let ._searchError(message):
+                state.isSearching = false
+                state.searchError = message
                 return .none
             }
         }

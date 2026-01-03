@@ -56,12 +56,13 @@ No reducer, view, or test should ever import `MultipeerConnectivity`.
 ### Rule 2: MusicKit Host-Only
 
 ```
-MusicKitClient is ONLY injected into HostFeature
+MusicKitClient is ONLY injected into HostFeature for playback
 ```
 
-`GuestFeature` must **never** have access to `MusicKitClient`.
+`GuestFeature` may access `MusicKitClient.search()` for discovery only.
+`GuestFeature` must **never** use playback methods.
 This prevents accidental audio playback on passenger devices.
-Enforce via dependency injection—don't even import it in Guest files.
+Enforce via dependency injection—limit usage to search.
 
 ### Rule 3: Host is Source of Truth
 

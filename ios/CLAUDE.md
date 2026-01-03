@@ -62,7 +62,8 @@ struct HostView: View {
 ## Architecture Rules (CRITICAL)
 
 1. **MCPeerID Boundary**: `MCPeerID` never escapes `MultipeerClient`—use `Peer` struct
-2. **MusicKit Host-Only**: Only `HostFeature` gets `MusicKitClient`—never `GuestFeature` or `AppFeature`
+2. **MusicKit Host-Only**: `MusicKitClient` is for HostFeature playback only
+   - Exception: `GuestFeature` may use `MusicKitClient.search()` for discovery
    - Exception: `MusicAuthorization.Status` may be used directly in `HostFeature.State`
 3. **Host is Source of Truth**: `HostSnapshot` replaces guest state entirely
 4. **Idempotent Voting**: `QueueItem.voters` is `Set<String>`—duplicates are no-ops

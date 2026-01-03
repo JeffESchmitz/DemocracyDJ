@@ -21,9 +21,21 @@ struct GuestView: View {
 
             Divider()
 
-            addFromLibrarySection
+            suggestSongSection
         }
         .background(Color(uiColor: .systemBackground))
+        .sheet(
+            isPresented: Binding(
+                get: { store.showSearchSheet },
+                set: { isPresented in
+                    if !isPresented {
+                        store.send(.dismissSearch)
+                    }
+                }
+            )
+        ) {
+            GuestSearchSheet(store: store)
+        }
     }
 
     private var connectionStatusSection: some View {
@@ -206,19 +218,30 @@ struct GuestView: View {
         }
     }
 
-    private var addFromLibrarySection: some View {
+    private var suggestSongSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Add from Library")
+            Text("Suggest a Song")
                 .font(.headline)
                 .padding(.horizontal)
                 .padding(.top, 12)
 
             List {
-                Text("Add from Library (Coming Soon)")
-                    .foregroundStyle(.secondary)
+                Button {
+                    store.send(.searchButtonTapped)
+                } label: {
+                    HStack {
+                        Text("Search Apple Music")
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .disabled(!isConnected)
             }
             .listStyle(.plain)
-            .disabled(true)
         }
     }
 
@@ -261,6 +284,13 @@ struct GuestView: View {
 
     private var isConnecting: Bool {
         if case .connecting = store.connectionStatus {
+            return true
+        }
+        return false
+    }
+
+    private var isConnected: Bool {
+        if case .connected = store.connectionStatus {
             return true
         }
         return false

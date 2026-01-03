@@ -23,6 +23,7 @@
 		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
 		9F8E7D6C5B4A392817161514 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F7081920A1B2C3D /* AppFeatureTests.swift */; };
 		A1B2C3D4E5F60718293A4B5C /* GuestFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0F1A2B3C4D5E6F7081920A /* GuestFeatureTests.swift */; };
+		B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */; };
 		B4E1B47C2D0D8F5C6B6C3F9A /* HostFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */; };
 		BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */; };
 		C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */; };
@@ -41,6 +42,7 @@
 
 /* Begin PBXFileReference section */
 		0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestView.swift; sourceTree = "<group>"; };
+		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F7081920A1B2C /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
 		1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeature.swift; sourceTree = "<group>"; };
 		270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJApp.swift; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 			children = (
 				8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */,
 				0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */,
+				C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */,
 			);
 			path = Guest;
 			sourceTree = "<group>";
@@ -300,6 +303,7 @@
 				C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */,
 				4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */,
 				5E6F7081920A1B2C3D4E5F60 /* GuestView.swift in Sources */,
+				B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */,
 				7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
