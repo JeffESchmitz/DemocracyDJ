@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Foundation
 import Shared
 import Testing
 @testable import DemocracyDJ
@@ -45,10 +46,19 @@ struct AppFeatureTests {
     @Test func guestSelectedTransitions() async {
         let store = TestStore(initialState: AppFeature.State(displayName: "Guest")) {
             AppFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
         }
 
         await store.send(.guestSelected) {
             $0.mode = .guest(GuestFeature.State(myPeer: nil))
+        }
+        await store.receive(\.guest) {
+            $0.guestState?.myPeer = Peer(id: UUID(0).uuidString, name: "Guest")
+            $0.guestState?.connectionStatus = .browsing
+            $0.guestState?.availableHosts = []
+            $0.guestState?.hostSnapshot = nil
+            $0.guestState?.pendingVotes = []
         }
     }
 
