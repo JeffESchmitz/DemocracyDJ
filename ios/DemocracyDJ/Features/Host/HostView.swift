@@ -14,18 +14,13 @@ struct HostView: View {
             // MARK: - Top Section: Now Playing (60% approx via layoutPriority)
             VStack(spacing: 20) {
                 if let song = store.nowPlaying {
-                    // Artwork Placeholder
-                    Rectangle()
-                        .fill(Color.secondary.opacity(0.3))
-                        .aspectRatio(1, contentMode: .fit)
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .font(.system(size: 60))
-                                .foregroundStyle(.secondary)
-                        }
-                        .cornerRadius(12)
-                        .padding(.horizontal, 40)
-                        .accessibilityLabel("Album artwork for \(song.title)")
+                    AlbumArtworkView(
+                        url: song.albumArtURL,
+                        title: song.title,
+                        size: 300,
+                        cornerRadius: 12
+                    )
+                    .padding(.horizontal, 40)
 
                     VStack(spacing: 8) {
                         Text(song.title)
