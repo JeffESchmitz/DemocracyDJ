@@ -356,52 +356,73 @@ struct HostView: View {
 
 // MARK: - Preview
 
-#Preview {
+#Preview("Subscribed - Playing") {
     HostView(
         store: Store(
             initialState: HostFeature.State(
                 myPeer: Peer(name: "Dad's iPhone"),
-                nowPlaying: Song(
-                    id: "1",
-                    title: "Bohemian Rhapsody",
-                    artist: "Queen",
-                    albumArtURL: nil,
-                    duration: 354
-                ),
-                queue: [
-                    QueueItem(
-                        id: "2",
-                        song: Song(
-                            id: "2",
-                            title: "Hotel California",
-                            artist: "Eagles",
-                            albumArtURL: nil,
-                            duration: 391
-                        ),
-                        addedBy: Peer(name: "Dad"),
-                        voters: Set([
-                            UUID().uuidString,
-                            UUID().uuidString,
-                            UUID().uuidString
-                        ])
-                    ),
-                    QueueItem(
-                        id: "3",
-                        song: Song(
-                            id: "3",
-                            title: "Levitating",
-                            artist: "Dua Lipa",
-                            albumArtURL: nil,
-                            duration: 203
-                        ),
-                        addedBy: Peer(name: "Teenager"),
-                        voters: Set([
-                            UUID().uuidString
-                        ])
-                    )
-                ],
+                nowPlaying: .previewSong,
+                queue: .previewQueue,
                 connectedPeers: [Peer(name: "Mom"), Peer(name: "Son")],
-                isHosting: true
+                isHosting: true,
+                isPlaying: true,
+                playbackStatus: PlaybackStatus(isPlaying: true, currentTime: 42, duration: 354),
+                musicAuthorizationStatus: .authorized,
+                subscriptionStatus: .subscribed
+            )
+        ) {
+            HostFeature()
+        }
+    )
+}
+
+#Preview("Not Subscribed - Can Subscribe") {
+    HostView(
+        store: Store(
+            initialState: HostFeature.State(
+                myPeer: Peer(name: "Dad's iPhone"),
+                nowPlaying: .previewSong,
+                queue: .previewQueue,
+                connectedPeers: [],
+                isHosting: true,
+                musicAuthorizationStatus: .authorized,
+                subscriptionStatus: .notSubscribed
+            )
+        ) {
+            HostFeature()
+        }
+    )
+}
+
+#Preview("Not Authorized") {
+    HostView(
+        store: Store(
+            initialState: HostFeature.State(
+                myPeer: Peer(name: "Dad's iPhone"),
+                nowPlaying: .previewSong,
+                queue: .previewQueue,
+                connectedPeers: [],
+                isHosting: true,
+                musicAuthorizationStatus: .notDetermined,
+                subscriptionStatus: .unknown
+            )
+        ) {
+            HostFeature()
+        }
+    )
+}
+
+#Preview("Nothing Playing") {
+    HostView(
+        store: Store(
+            initialState: HostFeature.State(
+                myPeer: Peer(name: "Dad's iPhone"),
+                nowPlaying: nil,
+                queue: [],
+                connectedPeers: [],
+                isHosting: true,
+                musicAuthorizationStatus: .authorized,
+                subscriptionStatus: .subscribed
             )
         ) {
             HostFeature()
