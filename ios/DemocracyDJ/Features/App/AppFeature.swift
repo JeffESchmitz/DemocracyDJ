@@ -77,7 +77,7 @@ struct AppFeature {
                     return .none
                 }
                 state.mode = .guest(GuestFeature.State(myPeer: nil))
-                return .none
+                return .send(.guest(.startBrowsing(displayName: trimmed)))
 
             case .exitSession:
                 switch state.mode {
