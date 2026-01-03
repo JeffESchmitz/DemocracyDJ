@@ -168,7 +168,12 @@ struct GuestFeatureTests {
             connectionStatus: .connected(host: Peer(id: "host", name: "Host")),
             hostSnapshot: HostSnapshot(nowPlaying: nil, queue: [], connectedPeers: []),
             pendingVotes: ["song-1"],
-            availableHosts: [Peer(id: "host", name: "Host")]
+            availableHosts: [Peer(id: "host", name: "Host")],
+            showSearchSheet: true,
+            searchQuery: "test",
+            searchResults: [Song.previewSong],
+            isSearching: true,
+            searchError: "error"
         )) {
             GuestFeature()
         } withDependencies: {
@@ -180,6 +185,11 @@ struct GuestFeatureTests {
             $0.availableHosts = []
             $0.hostSnapshot = nil
             $0.pendingVotes = []
+            $0.showSearchSheet = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+            $0.searchError = nil
         }
     }
 
@@ -233,6 +243,128 @@ struct GuestFeatureTests {
         }
 
         await store.finish()
+    }
+
+    @Test func searchQueryDebounced() async {
+        let clock = TestClock()
+        let song = Song.previewSong
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(search: { _ in [song] })
+            $0.continuousClock = clock
+        }
+
+        await store.send(.searchQueryChanged("ha")) {
+            $0.searchQuery = "ha"
+            $0.isSearching = true
+            $0.searchError = nil
+        }
+
+        await clock.advance(by: .milliseconds(300))
+
+        await store.receive(\.searchResultsReceived) {
+            $0.searchResults = [song]
+            $0.isSearching = false
+        }
+    }
+
+    @Test func songSelectedSendsSuggestAndClosesSheet() async {
+        let host = Peer(id: "host", name: "Host")
+        let recorder = GuestSendRecorder()
+        let song = Song.previewSong
+
+        let store = TestStore(initialState: GuestFeature.State(
+            myPeer: Peer(id: "guest", name: "Guest"),
+            connectionStatus: .connected(host: host),
+            showSearchSheet: true,
+            searchQuery: "ha",
+            searchResults: [song],
+            isSearching: false
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(
+                onSend: { message, target in
+                    await recorder.record(message: message, target: target)
+                }
+            )
+        }
+
+        await store.send(.songSelected(song)) {
+            $0.showSearchSheet = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+            $0.searchError = nil
+        }
+
+        await store.receive(\.suggestSongTapped)
+
+        await recorder.waitForCount(1)
+        let record = await recorder.last
+        #expect(record?.message == .intent(.suggestSong(song)))
+        #expect(record?.target == host)
+    }
+
+    @Test func searchErrorShowsError() async {
+        let clock = TestClock()
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(search: { _ in throw GuestTestMusicKitError.searchFailed })
+            $0.continuousClock = clock
+        }
+
+        await store.send(.searchQueryChanged("ha")) {
+            $0.searchQuery = "ha"
+            $0.isSearching = true
+            $0.searchError = nil
+        }
+
+        await clock.advance(by: .milliseconds(300))
+
+        await store.receive(\._searchError) {
+            $0.isSearching = false
+            $0.searchError = "Search failed"
+        }
+    }
+
+    @Test func dismissSearchCancelsAndClearsState() async {
+        let clock = TestClock()
+        let recorder = GuestSearchRecorder()
+        let song = Song.previewSong
+
+        let store = TestStore(initialState: GuestFeature.State(
+            showSearchSheet: true
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(search: { query in
+                await recorder.record(query)
+                return [song]
+            })
+            $0.continuousClock = clock
+        }
+
+        await store.send(.searchQueryChanged("ha")) {
+            $0.searchQuery = "ha"
+            $0.isSearching = true
+            $0.searchError = nil
+        }
+
+        await store.send(.dismissSearch) {
+            $0.showSearchSheet = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+            $0.searchError = nil
+        }
+
+        await clock.advance(by: .milliseconds(300))
+        #expect(await recorder.count == 0)
     }
 }
 
@@ -333,5 +465,28 @@ actor GuestStopRecorder {
 
     var called: Bool {
         didCallStop
+    }
+}
+
+actor GuestSearchRecorder {
+    private var queries: [String] = []
+
+    func record(_ query: String) {
+        queries.append(query)
+    }
+
+    var count: Int {
+        queries.count
+    }
+}
+
+enum GuestTestMusicKitError: Error, LocalizedError {
+    case searchFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .searchFailed:
+            return "Search failed"
+        }
     }
 }

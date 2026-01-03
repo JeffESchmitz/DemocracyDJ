@@ -51,13 +51,13 @@ open ios/DemocracyDJ.xcodeproj   # Open in Xcode
 
 ### TCA Feature Structure
 - `AppFeature` - Root, owns mode selection, composes Host/Guest
-- `HostFeature` - Owns queue state, broadcasts snapshots, has MusicKitClient
-- `GuestFeature` - Receives snapshots, sends intents, NO MusicKitClient access
+- `HostFeature` - Owns queue state, broadcasts snapshots, has MusicKitClient for playback
+- `GuestFeature` - Receives snapshots, sends intents, MusicKitClient search only
 
 ## Inviolable Architecture Rules
 
 1. **MCPeerID Boundary**: `MCPeerID` never escapes `MultipeerClient`—domain code uses `Peer` struct
-2. **MusicKit Host-Only**: Only injected into HostFeature, never GuestFeature
+2. **MusicKit Host-Only**: Only HostFeature uses MusicKitClient for playback; GuestFeature may use search only
 3. **Host is Source of Truth**: `HostSnapshot` replaces guest local state entirely
 4. **Idempotent Voting**: `QueueItem.voters` is `Set<String>`—duplicate votes are no-ops
 5. **Full Snapshots**: Broadcast entire `HostSnapshot` on every change (no diffing)

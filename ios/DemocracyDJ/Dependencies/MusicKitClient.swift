@@ -4,8 +4,9 @@ import MusicKit
 import Shared
 
 // Invariant:
-// MusicKitClient MUST only be accessed by HostFeature.
-// GuestFeature and AppFeature must never depend on this client.
+// MusicKitClient is owned by HostFeature for playback.
+// GuestFeature may use MusicKitClient.search() only (no playback).
+// AppFeature must never depend on this client.
 
 /// TCA dependency for MusicKit search and playback.
 /// Maps MusicKit.Song to Shared.Song at the dependency boundary.
