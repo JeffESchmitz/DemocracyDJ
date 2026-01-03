@@ -324,6 +324,7 @@ struct HostView: View {
                 }
             }
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     private var statusLabel: String {

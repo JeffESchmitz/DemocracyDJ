@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Dependencies
 import Shared
 import struct MusicKit.MusicAuthorization
+import UIKit
 
 @Reducer
 struct HostFeature {
@@ -19,6 +20,7 @@ struct HostFeature {
         var searchResults: [Song] = []
         var isSearching: Bool = false
         var myPeer: Peer
+        @Presents var alert: AlertState<Action.Alert>?
 
         init(
             myPeer: Peer,
@@ -100,6 +102,13 @@ struct HostFeature {
         // Authorization
         case requestMusicAuthorization
 
+        // Alerts
+        case alert(PresentationAction<Alert>)
+        enum Alert: Equatable {
+            case dismiss
+            case openSettings
+        }
+
         // Network
         case multipeerEvent(MultipeerEvent)
 
@@ -107,6 +116,8 @@ struct HostFeature {
         case _processIntent(GuestIntent, from: Peer)
         case _authorizationStatusUpdated(MusicAuthorization.Status)
         case _playbackStatusUpdated(PlaybackStatus)
+        case _playbackError(String)
+        case _searchError(String)
         case _broadcastSnapshot
 #if DEBUG
         case _debugSetNowPlaying
@@ -116,6 +127,7 @@ struct HostFeature {
     @Dependency(\.multipeerClient) private var multipeerClient
     @Dependency(\.musicKitClient) private var musicKitClient
     @Dependency(\.continuousClock) private var clock
+    @Dependency(\.openURL) private var openURL
 
     private enum CancelID {
         case multipeerEvents
@@ -172,12 +184,23 @@ struct HostFeature {
                     break
                 }
                 guard state.musicAuthorizationStatus == .authorized else {
-                    effects.append(.send(.requestMusicAuthorization))
+                    state.alert = AlertState {
+                        TextState("Music Access Required")
+                    } actions: {
+                        ButtonState(action: .openSettings) { TextState("Open Settings") }
+                        ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+                    } message: {
+                        TextState("Please authorize Apple Music to play songs.")
+                    }
                     break
                 }
                 effects.append(
-                    .run { _ in
-                        try await musicKitClient.play(song)
+                    .run { send in
+                        do {
+                            try await musicKitClient.play(song)
+                        } catch {
+                            await send(._playbackError(error.localizedDescription))
+                        }
                     }
                 )
 
@@ -217,9 +240,15 @@ struct HostFeature {
                 state.isSearching = true
                 effects.append(
                     .run { send in
-                        try await clock.sleep(for: .milliseconds(300))
-                        let results = try await musicKitClient.search(query)
-                        await send(.searchResultsReceived(results))
+                        do {
+                            try await clock.sleep(for: .milliseconds(300))
+                            let results = try await musicKitClient.search(query)
+                            await send(.searchResultsReceived(results))
+                        } catch is CancellationError {
+                            return
+                        } catch {
+                            await send(._searchError(error.localizedDescription))
+                        }
                     }
                     .cancellable(id: CancelID.search, cancelInFlight: true)
                 )
@@ -331,6 +360,25 @@ struct HostFeature {
                     effects.append(.send(.skipTapped))
                 }
 
+            case let ._playbackError(message):
+                state.alert = AlertState {
+                    TextState("Playback Error")
+                } actions: {
+                    ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+                } message: {
+                    TextState(message)
+                }
+
+            case let ._searchError(message):
+                state.isSearching = false
+                state.alert = AlertState {
+                    TextState("Search Error")
+                } actions: {
+                    ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+                } message: {
+                    TextState(message)
+                }
+
             case ._broadcastSnapshot:
                 let snapshot = HostSnapshot(
                     nowPlaying: state.nowPlaying,
@@ -338,8 +386,27 @@ struct HostFeature {
                     connectedPeers: state.connectedPeers
                 )
                 return .run { _ in
-                    try? await multipeerClient.send(.stateUpdate(snapshot), nil)
+                    do {
+                        try await multipeerClient.send(.stateUpdate(snapshot), nil)
+                    } catch {
+                        print("Multipeer send failed: \(error)")
+                    }
                 }
+
+            case .alert(.presented(.openSettings)):
+                state.alert = nil
+                return .run { _ in
+                    guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+                        return
+                    }
+                    await openURL(settingsURL)
+                }
+
+            case .alert(.presented(.dismiss)):
+                state.alert = nil
+
+            case .alert(.dismiss):
+                state.alert = nil
 
 #if DEBUG
             case ._debugSetNowPlaying:
@@ -365,6 +432,7 @@ struct HostFeature {
 
             return .merge(effects)
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 }
 
