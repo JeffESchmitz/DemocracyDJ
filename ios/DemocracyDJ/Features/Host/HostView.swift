@@ -65,6 +65,7 @@ struct HostView: View {
                                 .font(.system(size: 70))
                                 .foregroundStyle(.primary)
                         }
+                        .disabled(!store.canPlay)
                         .accessibilityLabel(store.isPlaying ? "Pause" : "Play")
                         .accessibilityHint(store.isPlaying ? "Pauses playback" : "Resumes playback")
 
@@ -78,6 +79,22 @@ struct HostView: View {
                         .accessibilityLabel("Skip song")
                     }
                     .padding(.top, 10)
+
+                    if store.musicAuthorizationStatus == .authorized,
+                       !store.subscriptionStatus.canPlayCatalogContent {
+                        VStack(spacing: 4) {
+                            Text("Apple Music subscription required")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+
+                            if store.subscriptionStatus.canBecomeSubscriber,
+                               let subscribeURL = URL(string: "https://music.apple.com/subscribe") {
+                                Link("Subscribe to Apple Music", destination: subscribeURL)
+                                    .font(.caption)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
 #if DEBUG
                     Button("DEBUG: Request Music Authorization") {
                         store.send(.requestMusicAuthorization)

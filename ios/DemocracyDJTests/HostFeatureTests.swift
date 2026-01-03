@@ -33,7 +33,8 @@ struct HostFeatureTests {
         let store = TestStore(initialState: HostFeature.State(
             myPeer: host,
             nowPlaying: song,
-            musicAuthorizationStatus: .authorized
+            musicAuthorizationStatus: .authorized,
+            subscriptionStatus: SubscriptionStatus(canPlayCatalogContent: true, canBecomeSubscriber: false)
         )) {
             HostFeature()
         } withDependencies: {
@@ -74,6 +75,30 @@ struct HostFeatureTests {
         }
     }
 
+    @Test func playTappedRequiresSubscription() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            musicAuthorizationStatus: .authorized,
+            subscriptionStatus: SubscriptionStatus(canPlayCatalogContent: false, canBecomeSubscriber: true)
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.playTapped) {
+            $0.alert = AlertState {
+                TextState("Apple Music Subscription Required")
+            } actions: {
+                ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+            } message: {
+                TextState("An active Apple Music subscription is required to play songs.")
+            }
+        }
+    }
+
     @Test func pauseTappedStopsPlayback() async {
         let host = Peer(id: "host", name: "Host")
         let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 180)
@@ -107,7 +132,8 @@ struct HostFeatureTests {
         let store = TestStore(initialState: HostFeature.State(
             myPeer: host,
             nowPlaying: song,
-            musicAuthorizationStatus: .authorized
+            musicAuthorizationStatus: .authorized,
+            subscriptionStatus: SubscriptionStatus(canPlayCatalogContent: true, canBecomeSubscriber: false)
         )) {
             HostFeature()
         } withDependencies: {
@@ -244,12 +270,24 @@ struct HostFeatureTests {
                 }
             )
             $0.musicKitClient = .mock(
-                playbackStatus: { AsyncStream { _ in } }
+                playbackStatus: { AsyncStream { _ in } },
+                checkSubscription: {
+                    SubscriptionStatus(canPlayCatalogContent: true, canBecomeSubscriber: false)
+                }
             )
         }
 
         await store.send(.startHosting) {
             $0.isHosting = true
+        }
+        await store.receive(._subscriptionStatusUpdated(SubscriptionStatus(
+            canPlayCatalogContent: true,
+            canBecomeSubscriber: false
+        ))) {
+            $0.subscriptionStatus = SubscriptionStatus(
+                canPlayCatalogContent: true,
+                canBecomeSubscriber: false
+            )
         }
 
         continuation?.yield(.peerConnected(guest))
@@ -296,6 +334,7 @@ struct HostFeatureTests {
         await store.send(.startHosting) {
             $0.isHosting = true
         }
+        await store.receive(._subscriptionStatusUpdated(.unknown))
 
         await store.send(.stopHosting) {
             $0.isHosting = false
@@ -330,7 +369,9 @@ struct HostFeatureTests {
         await store.send(.startHosting) {
             $0.isHosting = true
         }
+        await store.receive(._subscriptionStatusUpdated(.unknown))
         await store.send(.startHosting)
+        await store.receive(._subscriptionStatusUpdated(.unknown))
 
         await terminationRecorder.waitForCount(1)
 
@@ -351,6 +392,19 @@ struct HostFeatureTests {
             $0.playbackStatus = status
             $0.isPlaying = true
         }
+    }
+
+    @Test func canPlayRequiresAuthorizationAndSubscription() async {
+        let host = Peer(id: "host", name: "Host")
+        var state = HostFeature.State(myPeer: host)
+
+        #expect(state.canPlay == false)
+
+        state.musicAuthorizationStatus = .authorized
+        #expect(state.canPlay == false)
+
+        state.subscriptionStatus = SubscriptionStatus(canPlayCatalogContent: true, canBecomeSubscriber: false)
+        #expect(state.canPlay == true)
     }
 
     @Test func songFinishedAdvancesQueue() async {
