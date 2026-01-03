@@ -144,6 +144,14 @@ This document tracks manual test cases with step-by-step reproduction.
 4. Dismiss the sheet.
 5. Reopen the sheet and confirm query/results are cleared.
 
+### Guest-7: Guest Voting UI (One Vote Per Song)
+
+1. Connect to a host with a populated queue.
+2. Verify each queue row shows a vote button and count.
+3. Tap the vote button on a song.
+4. Confirm the button switches to filled/blue and becomes disabled.
+5. Confirm the vote count increases after the next host snapshot.
+
 ## Connect
 
 ### Connect-1: Guest Discovery and Connect
