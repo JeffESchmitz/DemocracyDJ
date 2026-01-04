@@ -1,0 +1,43 @@
+appId: com.jeffschmitz.DemocracyDJ
+---
+- launchApp
+
+# Mode selection
+# TODO: Verify accessibilityIdentifier for name field and buttons if these labels change.
+- tapOn: "Enter your name"
+- inputText: "Peer"
+- tapOn:
+    id: "peer_join_session_button"
+
+# Join host
+# TODO: Verify visible host name text if display name differs from "Host".
+- extendedWaitUntil:
+    visible: "Nearby Parties"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: "Host"
+    timeout: 60000
+- tapOn: "Host"
+- extendedWaitUntil:
+    visible: "Connected"
+    timeout: 60000
+
+# Suggest a song
+- tapOn:
+    id: "add_song_button"
+- extendedWaitUntil:
+    visible: "Suggest a Song"
+    timeout: 60000
+- tapOn:
+    id: "song_search_field"
+- inputText: "Hendrix"
+- extendedWaitUntil:
+    visible: "All Along the Watchtower"
+    timeout: 60000
+- tapOn: "All Along the Watchtower"
+
+# Confirm suggestion reflected in queue
+# TODO: Verify if queue text differs on guest
+- extendedWaitUntil:
+    visible: "All Along the Watchtower"
+    timeout: 60000

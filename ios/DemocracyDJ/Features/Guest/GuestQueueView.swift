@@ -26,9 +26,11 @@ struct GuestQueueView: View {
                         }
                     )
                     .listRowSeparator(.hidden)
+                    .accessibilityIdentifier("song_row_\(item.id)")
                 }
             }
             .listStyle(.plain)
+            .accessibilityIdentifier("shared_queue_view")
         }
     }
 }

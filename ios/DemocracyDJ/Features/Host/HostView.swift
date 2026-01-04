@@ -181,6 +181,7 @@ struct HostView: View {
                             .font(.subheadline)
                     }
                     .disabled(store.musicAuthorizationStatus != .authorized)
+                    .accessibilityIdentifier("add_song_button")
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -229,9 +230,11 @@ struct HostView: View {
                         }
                         .padding(.vertical, 4)
                         .listRowSeparator(.hidden)
+                        .accessibilityIdentifier("song_row_\(item.id)")
                     }
                 }
                 .listStyle(.plain)
+                .accessibilityIdentifier("shared_queue_view")
             }
             .layoutPriority(1)
         }
