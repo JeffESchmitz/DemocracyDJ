@@ -275,6 +275,9 @@ struct HostFeatureTests {
                     SubscriptionStatus(canPlayCatalogContent: true, canBecomeSubscriber: false)
                 }
             )
+            $0.nowPlayingClient = .mock(
+                remoteCommands: { AsyncStream { _ in } }
+            )
         }
 
         await store.send(.startHosting) {
@@ -329,6 +332,9 @@ struct HostFeatureTests {
             $0.musicKitClient = .mock(
                 playbackStatus: { AsyncStream { _ in } }
             )
+            $0.nowPlayingClient = .mock(
+                remoteCommands: { AsyncStream { _ in } }
+            )
         }
 
         await store.send(.startHosting) {
@@ -363,6 +369,9 @@ struct HostFeatureTests {
             $0.multipeerClient = .mock(events: { await eventsCounter.nextStream() })
             $0.musicKitClient = .mock(
                 playbackStatus: { AsyncStream { _ in } }
+            )
+            $0.nowPlayingClient = .mock(
+                remoteCommands: { AsyncStream { _ in } }
             )
         }
 
