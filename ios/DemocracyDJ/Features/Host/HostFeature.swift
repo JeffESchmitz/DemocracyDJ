@@ -108,12 +108,17 @@ struct HostFeature {
         case songSelected(Song)
         case dismissSearch
 
+        // Queue
+        case removeSongTapped(id: String)
+        case removeSongFromQueue(id: String)
+
         // Authorization
         case requestMusicAuthorization
 
         // Alerts
         case alert(PresentationAction<Alert>)
         enum Alert: Equatable {
+            case confirmRemoveSong(String)
             case dismiss
             case openSettings
         }
@@ -309,6 +314,28 @@ struct HostFeature {
 
             case .addSongTapped:
                 state.isSearchSheetPresented = true
+
+            case let .removeSongTapped(id):
+                state.alert = AlertState {
+                    TextState("Remove Song?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .confirmRemoveSong(id)) {
+                        TextState("Remove")
+                    }
+                    ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+                } message: {
+                    TextState("This will remove the song from the queue for everyone.")
+                }
+
+            case let .removeSongFromQueue(id):
+                guard state.nowPlaying?.id != id else {
+                    break
+                }
+                guard state.queue.contains(where: { $0.id == id }) else {
+                    break
+                }
+                state.queue.removeAll(where: { $0.id == id })
+                needsBroadcast = true
 
             case let .searchQueryChanged(query):
                 state.searchQuery = query
@@ -521,6 +548,10 @@ struct HostFeature {
                     }
                     await openURL(settingsURL)
                 }
+
+            case let .alert(.presented(.confirmRemoveSong(id))):
+                state.alert = nil
+                return .send(.removeSongFromQueue(id: id))
 
             case .alert(.presented(.dismiss)):
                 state.alert = nil
