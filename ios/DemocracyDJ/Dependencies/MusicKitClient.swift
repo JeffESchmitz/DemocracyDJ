@@ -16,6 +16,7 @@ struct MusicKitClient: Sendable {
     var play: @Sendable (_ song: Shared.Song) async throws -> Void
     var pause: @Sendable () async -> Void
     var skip: @Sendable () async -> Void
+    var seek: @Sendable (_ time: TimeInterval) async -> Void
     var playbackStatus: @Sendable () -> AsyncStream<PlaybackStatus>
     var checkSubscription: @Sendable () async -> SubscriptionStatus
 }
@@ -100,6 +101,9 @@ extension MusicKitClient {
                     // Ignore playback errors; caller has no error channel.
                 }
             },
+            seek: { time in
+                ApplicationMusicPlayer.shared.playbackTime = time
+            },
             playbackStatus: {
                 AsyncStream { continuation in
                     func yieldStatus() {
@@ -165,6 +169,7 @@ extension MusicKitClient {
         play: @escaping @Sendable (Shared.Song) async throws -> Void = { _ in },
         pause: @escaping @Sendable () async -> Void = {},
         skip: @escaping @Sendable () async -> Void = {},
+        seek: @escaping @Sendable (TimeInterval) async -> Void = { _ in },
         playbackStatus: @escaping @Sendable () -> AsyncStream<PlaybackStatus> = {
             AsyncStream { continuation in
                 continuation.yield(PlaybackStatus.notPlaying)
@@ -178,6 +183,7 @@ extension MusicKitClient {
             play: play,
             pause: pause,
             skip: skip,
+            seek: seek,
             playbackStatus: playbackStatus,
             checkSubscription: checkSubscription
         )
@@ -191,6 +197,7 @@ extension MusicKitClient {
         play: { _ in },
         pause: { },
         skip: { },
+        seek: { _ in },
         playbackStatus: {
             AsyncStream { continuation in
                 continuation.yield(PlaybackStatus.notPlaying)

@@ -15,6 +15,7 @@
 		6A7B8C9D0E1F2A3B4C5D6E7F /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7081920A1B2C /* AppFeature.swift */; };
 		6AA2C7F62E2E3AF4AFB831A1 /* HostFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */; };
 		7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */; };
+		8B9C0D1E2F3A4B5C6D7E8F9A /* NowPlayingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C0D1E2F3A4B5C6D7E8F9A0B /* NowPlayingClient.swift */; };
 		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
 		7C8D9E0F1A2B3C4D5E6F7081 /* ModeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D5E6F7081920A1B2C3D4E /* ModeSelectionView.swift */; };
 		8A9B0C1D2E3F405162738495 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5E6F7081920A1B2C3D4E5F /* AppView.swift */; };
@@ -56,6 +57,7 @@
 		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
 		665D74033AE5AC105B0C44DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicKitClient.swift; sourceTree = "<group>"; };
+		9C0D1E2F3A4B5C6D7E8F9A0B /* NowPlayingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingClient.swift; sourceTree = "<group>"; };
 		7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostView.swift; sourceTree = "<group>"; };
 		7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemocracyDJ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerClient.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 			isa = PBXGroup;
 			children = (
 				6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */,
+				9C0D1E2F3A4B5C6D7E8F9A0B /* NowPlayingClient.swift */,
 				82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */,
 				F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */,
 			);
@@ -313,6 +316,7 @@
 				E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */,
 				B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */,
 				7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */,
+				8B9C0D1E2F3A4B5C6D7E8F9A /* NowPlayingClient.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 			);
