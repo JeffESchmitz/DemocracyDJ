@@ -217,6 +217,14 @@ Notes:
 2. Tap skip.
 3. Confirm now playing clears.
 
+### Music-6: Now Playing Info Updates
+
+1. Start playback on the host.
+2. Lock the device or open Control Center.
+3. Confirm the lock screen/Control Center shows the current song title, artist, and progress.
+4. Skip to the next song.
+5. Confirm the displayed now playing metadata updates to the new song.
+
 ## Shared
 
 ### Shared-1: Exit Session Returns to Mode Selection
