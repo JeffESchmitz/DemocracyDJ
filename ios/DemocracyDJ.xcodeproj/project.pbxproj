@@ -8,10 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		3C6D8F2A1B4E7C9D0F1A2B3C /* HostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */; };
-		C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */; };
-		C1D2E3F405162738495A6B7C /* AlbumArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */; };
-		E1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */; };
-		E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */; };
 		4D2C1B0A9F8E7D6C5B4A3928 /* GuestFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4A7F1B2D3E4F5061728394 /* GuestFeature.swift */; };
 		52D09770ADE9BD3F462D6740 /* Shared in Frameworks */ = {isa = PBXBuildFile; productRef = A5444B95CCD439271AAF0C92 /* Shared */; };
 		5B085BEF0AAA070285C57524 /* DemocracyDJApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */; };
@@ -28,8 +24,12 @@
 		B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */; };
 		B4E1B47C2D0D8F5C6B6C3F9A /* HostFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */; };
 		BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */; };
+		C1D2E3F405162738495A6B7C /* AlbumArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */; };
+		C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */; };
 		C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */; };
 		D6A1B2C3D4E5F60718293A4B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A879A8182F083733006E069A /* Assets.xcassets */; };
+		E1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */; };
+		E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,9 +44,6 @@
 
 /* Begin PBXFileReference section */
 		0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestView.swift; sourceTree = "<group>"; };
-		F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueView.swift; sourceTree = "<group>"; };
-		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
-		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
 		1A2B3C4D5E6F7081920A1B2C /* AppFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFeature.swift; sourceTree = "<group>"; };
 		1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostFeature.swift; sourceTree = "<group>"; };
 		270D35D66AF0735BE4349F23 /* DemocracyDJApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJApp.swift; sourceTree = "<group>"; };
@@ -56,8 +53,6 @@
 		3F18D2C0F9A1B2C3D4E5F678 /* DemocracyDJTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = DemocracyDJTests.xctestplan; sourceTree = "<group>"; };
 		415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemocracyDJTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D5E6F7081920A1B2C3D4E5F /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
-		B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
-		B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumArtworkView.swift; sourceTree = "<group>"; };
 		632BF223B09E2B9022D00F4D /* shared */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shared; path = ../shared; sourceTree = SOURCE_ROOT; };
 		665D74033AE5AC105B0C44DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicKitClient.swift; sourceTree = "<group>"; };
@@ -68,6 +63,11 @@
 		9E0F1A2B3C4D5E6F7081920A /* GuestFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestFeatureTests.swift; sourceTree = "<group>"; };
 		A879A8182F083733006E069A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJTests.swift; sourceTree = "<group>"; };
+		B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumArtworkView.swift; sourceTree = "<group>"; };
+		B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
+		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueView.swift; sourceTree = "<group>"; };
+		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
 		F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MultipeerClient+Live.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -167,15 +167,6 @@
 			path = Host;
 			sourceTree = "<group>";
 		};
-		D1E2F3A405162738495A6B7C /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */,
-				B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
 		9821EA7F469BAA8A8F9772A8 /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
@@ -202,6 +193,15 @@
 				6F5E4D3C2B1A090807060504 /* Guest */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		D1E2F3A405162738495A6B7C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */,
+				B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
