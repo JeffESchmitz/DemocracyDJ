@@ -3,21 +3,13 @@
     {
       "idiom" : "universal",
       "color" : {
-        "platform" : "ios",
-        "reference" : "systemBackgroundColor"
-      }
-    },
-    {
-      "idiom" : "universal",
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
+        "color-space" : "srgb",
+        "components" : {
+          "alpha" : "1.000",
+          "red" : "0.050",
+          "green" : "0.100",
+          "blue" : "0.200"
         }
-      ],
-      "color" : {
-        "platform" : "ios",
-        "reference" : "systemBackgroundColor"
       }
     }
   ],
