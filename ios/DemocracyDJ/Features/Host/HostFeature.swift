@@ -129,6 +129,8 @@ struct HostFeature {
         case _playbackError(String)
         case _searchError(String)
         case _broadcastSnapshot
+        case _remoteCommand(RemoteCommand)
+        case _seek(TimeInterval)
 #if DEBUG
         case _debugSetNowPlaying
 #endif
@@ -136,6 +138,7 @@ struct HostFeature {
 
     @Dependency(\.multipeerClient) private var multipeerClient
     @Dependency(\.musicKitClient) private var musicKitClient
+    @Dependency(\.nowPlayingClient) private var nowPlayingClient
     @Dependency(\.continuousClock) private var clock
     @Dependency(\.openURL) private var openURL
 
@@ -143,6 +146,7 @@ struct HostFeature {
         case multipeerEvents
         case playbackStatus
         case search
+        case remoteCommands
     }
 
     var body: some ReducerOf<Self> {
@@ -160,12 +164,25 @@ struct HostFeature {
                     }
                 )
                 effects.append(
+                    .run { _ in
+                        await nowPlayingClient.configure()
+                    }
+                )
+                effects.append(
                     .run { send in
                         for await event in await multipeerClient.events() {
                             await send(.multipeerEvent(event))
                         }
                     }
                     .cancellable(id: CancelID.multipeerEvents, cancelInFlight: true)
+                )
+                effects.append(
+                    .run { send in
+                        for await command in nowPlayingClient.remoteCommands() {
+                            await send(._remoteCommand(command))
+                        }
+                    }
+                    .cancellable(id: CancelID.remoteCommands, cancelInFlight: true)
                 )
                 effects.append(
                     .run { send in
@@ -181,14 +198,34 @@ struct HostFeature {
                         await send(._subscriptionStatusUpdated(status))
                     }
                 )
+                let initialNowPlaying = state.nowPlaying
+                let initialIsPlaying = state.isPlaying
+                let initialCurrentTime = state.playbackStatus.currentTime
+                let initialDuration = state.playbackStatus.duration
+                effects.append(
+                    .run { _ in
+                        await nowPlayingClient.updateNowPlaying(
+                            initialNowPlaying,
+                            initialIsPlaying,
+                            initialCurrentTime,
+                            initialDuration
+                        )
+                    }
+                )
 
             case .stopHosting:
                 state.isHosting = false
                 effects.append(.cancel(id: CancelID.multipeerEvents))
                 effects.append(.cancel(id: CancelID.playbackStatus))
+                effects.append(.cancel(id: CancelID.remoteCommands))
                 effects.append(
                     .run { _ in
                         await multipeerClient.stop()
+                    }
+                )
+                effects.append(
+                    .run { _ in
+                        await nowPlayingClient.updateNowPlaying(nil, false, 0, 0)
                     }
                 )
 
@@ -245,10 +282,29 @@ struct HostFeature {
                     if state.nowPlaying != nil {
                         state.nowPlaying = nil
                         needsBroadcast = true
+                        effects.append(
+                            .run { _ in
+                                await nowPlayingClient.updateNowPlaying(nil, false, 0, 0)
+                            }
+                        )
                     }
                 } else {
                     state.nowPlaying = state.queue.removeFirst().song
                     needsBroadcast = true
+                    let nowPlaying = state.nowPlaying
+                    let isPlaying = state.isPlaying
+                    let currentTime = state.playbackStatus.currentTime
+                    let duration = state.playbackStatus.duration
+                    effects.append(
+                        .run { _ in
+                            await nowPlayingClient.updateNowPlaying(
+                                nowPlaying,
+                                isPlaying,
+                                currentTime,
+                                duration
+                            )
+                        }
+                    )
                 }
 
             case .addSongTapped:
@@ -380,6 +436,20 @@ struct HostFeature {
                 let wasPlaying = state.playbackStatus.isPlaying
                 state.playbackStatus = status
                 state.isPlaying = status.isPlaying
+                let nowPlaying = state.nowPlaying
+                let isPlaying = state.isPlaying
+                let currentTime = state.playbackStatus.currentTime
+                let duration = state.playbackStatus.duration
+                effects.append(
+                    .run { _ in
+                        await nowPlayingClient.updateNowPlaying(
+                            nowPlaying,
+                            isPlaying,
+                            currentTime,
+                            duration
+                        )
+                    }
+                )
 
                 if wasPlaying,
                    !status.isPlaying,
@@ -388,6 +458,27 @@ struct HostFeature {
                    state.nowPlaying != nil {
                     effects.append(.send(.skipTapped))
                 }
+
+            case let ._remoteCommand(command):
+                switch command {
+                case .play:
+                    effects.append(.send(.playTapped))
+                case .pause:
+                    effects.append(.send(.pauseTapped))
+                case .togglePlayPause:
+                    effects.append(.send(state.isPlaying ? .pauseTapped : .playTapped))
+                case .nextTrack:
+                    effects.append(.send(.skipTapped))
+                case let .changePlaybackPosition(time):
+                    effects.append(.send(._seek(time)))
+                }
+
+            case let ._seek(time):
+                effects.append(
+                    .run { _ in
+                        await musicKitClient.seek(time)
+                    }
+                )
 
             case let ._playbackError(message):
                 state.alert = AlertState {
@@ -448,6 +539,20 @@ struct HostFeature {
                 )
                 state.isPlaying = false
                 state.playbackStatus = .notPlaying
+                let nowPlaying = state.nowPlaying
+                let isPlaying = state.isPlaying
+                let currentTime = state.playbackStatus.currentTime
+                let duration = state.playbackStatus.duration
+                effects.append(
+                    .run { _ in
+                        await nowPlayingClient.updateNowPlaying(
+                            nowPlaying,
+                            isPlaying,
+                            currentTime,
+                            duration
+                        )
+                    }
+                )
 #endif
             }
 
