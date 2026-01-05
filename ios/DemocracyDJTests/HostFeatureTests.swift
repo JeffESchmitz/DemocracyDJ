@@ -221,6 +221,81 @@ struct HostFeatureTests {
         await store.receive(._broadcastSnapshot)
     }
 
+    @Test func removeSongFromQueueRemovesAndBroadcasts() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Remove Me", artist: "Artist", albumArtURL: nil, duration: 180)
+        let item = QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host, queue: [item])) {
+            HostFeature()
+        }
+
+        await store.send(.removeSongTapped(id: song.id)) {
+            $0.alert = AlertState {
+                TextState("Remove Song?")
+            } actions: {
+                ButtonState(role: .destructive, action: .confirmRemoveSong(song.id)) {
+                    TextState("Remove")
+                }
+                ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+            } message: {
+                TextState("This will remove the song from the queue for everyone.")
+            }
+        }
+
+        await store.send(.alert(.presented(.confirmRemoveSong(song.id)))) {
+            $0.alert = nil
+        }
+
+        await store.receive(.removeSongFromQueue(id: song.id)) {
+            $0.queue = []
+        }
+        await store.receive(._broadcastSnapshot)
+    }
+
+    @Test func removeNonExistentSongIsNoOp() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Keep Me", artist: "Artist", albumArtURL: nil, duration: 180)
+        let item = QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host, queue: [item])) {
+            HostFeature()
+        }
+
+        await store.send(.removeSongFromQueue(id: "missing"))
+    }
+
+    @Test func removeNowPlayingSongIsNoOp() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Now Playing", artist: "Artist", albumArtURL: nil, duration: 180)
+        let item = QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            nowPlaying: song,
+            queue: [item]
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.removeSongFromQueue(id: song.id))
+    }
+
+    @Test func removeLastSongLeavesEmptyQueue() async {
+        let host = Peer(id: "host", name: "Host")
+        let song = Song(id: "song-1", title: "Last Song", artist: "Artist", albumArtURL: nil, duration: 180)
+        let item = QueueItem(id: song.id, song: song, addedBy: host, voters: [])
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host, queue: [item])) {
+            HostFeature()
+        }
+
+        await store.send(.removeSongFromQueue(id: song.id)) {
+            $0.queue = []
+        }
+        await store.receive(._broadcastSnapshot)
+    }
+
     @Test func broadcastsSnapshotOnPeerConnectedEvenWithoutChange() async {
         let host = Peer(id: "host", name: "Host")
         let peer = Peer(id: "peer-1", name: "Peer")

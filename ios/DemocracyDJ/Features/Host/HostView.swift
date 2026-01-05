@@ -231,6 +231,20 @@ struct HostView: View {
                         .padding(.vertical, 4)
                         .listRowSeparator(.hidden)
                         .accessibilityIdentifier("song_row_\(item.id)")
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                store.send(.removeSongTapped(id: item.id))
+                            } label: {
+                                Label("Remove", systemImage: "trash")
+                            }
+                        }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                store.send(.removeSongTapped(id: item.id))
+                            } label: {
+                                Label("Remove from Queue", systemImage: "trash")
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
