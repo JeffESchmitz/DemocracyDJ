@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Dependencies
 import Foundation
 import MediaPlayer
@@ -94,6 +94,7 @@ extension NowPlayingClient {
                 AsyncStream { continuation in
                     Task { @MainActor in
                         let commandCenter = MPRemoteCommandCenter.shared()
+                        let notificationCenter = NotificationCenter.default
 
                         commandCenter.playCommand.addTarget { _ in
                             continuation.yield(.play)
@@ -130,14 +131,40 @@ extension NowPlayingClient {
                         commandCenter.previousTrackCommand.isEnabled = false
                         commandCenter.changePlaybackPositionCommand.isEnabled = true
 
+                        let interruptionObserver = notificationCenter.addObserver(
+                            forName: AVAudioSession.interruptionNotification,
+                            object: nil,
+                            queue: .main
+                        ) { notification in
+                            guard let info = notification.userInfo,
+                                  let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+                                  let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+                                return
+                            }
+
+                            switch type {
+                            case .began:
+                                continuation.yield(.pause)
+                            case .ended:
+                                let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt
+                                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue ?? 0)
+                                if options.contains(.shouldResume) {
+                                    continuation.yield(.play)
+                                }
+                            @unknown default:
+                                break
+                            }
+                        }
+
                         continuation.onTermination = { _ in
-                            Task { @MainActor in
+                            Task { @MainActor [interruptionObserver] in
                                 let commandCenter = MPRemoteCommandCenter.shared()
                                 commandCenter.playCommand.removeTarget(nil)
                                 commandCenter.pauseCommand.removeTarget(nil)
                                 commandCenter.togglePlayPauseCommand.removeTarget(nil)
                                 commandCenter.nextTrackCommand.removeTarget(nil)
                                 commandCenter.changePlaybackPositionCommand.removeTarget(nil)
+                                NotificationCenter.default.removeObserver(interruptionObserver)
                             }
                         }
                     }
