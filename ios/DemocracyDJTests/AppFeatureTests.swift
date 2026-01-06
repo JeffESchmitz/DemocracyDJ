@@ -7,6 +7,103 @@ import Testing
 @MainActor
 @Suite("AppFeature")
 struct AppFeatureTests {
+    // MARK: - Onboarding Tests
+
+    @Test func onAppearShowsOnboardingForNewUser() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.userDefaultsClient = .mock(
+                hasCompletedOnboarding: { false },
+                displayName: { nil }
+            )
+        }
+
+        await store.send(.onAppear) {
+            $0.hasCheckedOnboarding = true
+        }
+        await store.receive(._loadedOnboardingStatus(hasCompleted: false, displayName: nil)) {
+            $0.mode = .onboarding(OnboardingFeature.State())
+        }
+    }
+
+    @Test func onAppearSkipsOnboardingForReturningUser() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.userDefaultsClient = .mock(
+                hasCompletedOnboarding: { true },
+                displayName: { "Jeff" }
+            )
+        }
+
+        await store.send(.onAppear) {
+            $0.hasCheckedOnboarding = true
+        }
+        await store.receive(._loadedOnboardingStatus(hasCompleted: true, displayName: "Jeff")) {
+            $0.displayName = "Jeff"
+            $0.mode = .modeSelection
+        }
+    }
+
+    @Test func onAppearOnlyRunsOnce() async {
+        let store = TestStore(initialState: AppFeature.State(hasCheckedOnboarding: true)) {
+            AppFeature()
+        } withDependencies: {
+            $0.userDefaultsClient = .mock()
+        }
+
+        // Should do nothing since already checked
+        await store.send(.onAppear)
+    }
+
+    @Test func onboardingCompletionPersistsAndTransitions() async {
+        var didSetCompleted = false
+        var savedName: String?
+
+        let store = TestStore(
+            initialState: AppFeature.State(
+                mode: .onboarding(OnboardingFeature.State(displayName: "Jeff"))
+            )
+        ) {
+            AppFeature()
+        } withDependencies: {
+            $0.userDefaultsClient = .mock(
+                setHasCompletedOnboarding: { _ in didSetCompleted = true },
+                setDisplayName: { savedName = $0 }
+            )
+        }
+
+        await store.send(.onboarding(.delegate(.completed(displayName: "Jeff")))) {
+            $0.displayName = "Jeff"
+            $0.mode = .modeSelection
+        }
+
+        #expect(didSetCompleted == true)
+        #expect(savedName == "Jeff")
+    }
+
+    @Test func onboardingRestoresDisplayNameOnSkip() async {
+        let store = TestStore(initialState: AppFeature.State()) {
+            AppFeature()
+        } withDependencies: {
+            $0.userDefaultsClient = .mock(
+                hasCompletedOnboarding: { true },
+                displayName: { "SavedUser" }
+            )
+        }
+
+        await store.send(.onAppear) {
+            $0.hasCheckedOnboarding = true
+        }
+        await store.receive(._loadedOnboardingStatus(hasCompleted: true, displayName: "SavedUser")) {
+            $0.displayName = "SavedUser"
+            $0.mode = .modeSelection
+        }
+    }
+
+    // MARK: - Display Name Tests
+
     @Test func displayNameChanged() async {
         let store = TestStore(initialState: AppFeature.State()) {
             AppFeature()

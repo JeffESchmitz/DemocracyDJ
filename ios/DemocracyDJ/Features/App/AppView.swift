@@ -9,6 +9,10 @@ struct AppView: View {
         ZStack {
             SwitchStore(store.scope(state: \.mode, action: { $0 })) { state in
                 switch state {
+                case .onboarding:
+                    IfLetStore(store.scope(state: \.onboardingState, action: AppFeature.Action.onboarding)) { onboardingStore in
+                        OnboardingView(store: onboardingStore)
+                    }
                 case .modeSelection:
                     ModeSelectionView(store: store)
                 case .host:
@@ -29,6 +33,7 @@ struct AppView: View {
             }
         }
         .task {
+            store.send(.onAppear)
             try? await Task.sleep(for: .milliseconds(650))
             withAnimation(.easeOut(duration: 0.35)) {
                 showSplash = false
