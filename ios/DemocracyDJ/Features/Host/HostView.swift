@@ -10,27 +10,30 @@ struct HostView: View {
     @Bindable var store: StoreOf<HostFeature>
 
     var body: some View {
-        VStack(spacing: 0) {
-            // MARK: - Top Section: Now Playing (60% approx via layoutPriority)
-            VStack(spacing: 20) {
+        GeometryReader { proxy in
+            let layout = HostLayout(availableHeight: proxy.size.height)
+
+            VStack(spacing: 0) {
+                // MARK: - Top Section: Now Playing (adaptive sizing)
+                VStack(spacing: layout.sectionSpacing) {
                 if let song = store.nowPlaying {
                     AlbumArtworkView(
                         url: song.albumArtURL,
                         title: song.title,
-                        size: 300,
+                        size: layout.artworkSize,
                         cornerRadius: 12
                     )
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, layout.horizontalPadding)
 
                     VStack(spacing: 8) {
                         Text(song.title)
-                            .font(.system(size: 28, weight: .bold))
+                            .font(.system(size: layout.titleFontSize, weight: .bold))
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
                             .accessibilityLabel("Now playing: \(song.title)")
 
                         Text(song.artist)
-                            .font(.title3)
+                            .font(.system(size: layout.subtitleFontSize))
                             .foregroundStyle(.secondary)
                             .accessibilityLabel("Artist: \(song.artist)")
                     }
@@ -50,7 +53,7 @@ struct HostView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, layout.horizontalPadding)
 
                     // Controls (Active)
                     HStack(spacing: 40) {
@@ -62,7 +65,7 @@ struct HostView: View {
                             }
                         } label: {
                             Image(systemName: store.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 70))
+                                .font(.system(size: layout.playControlSize))
                                 .foregroundStyle(.primary)
                         }
                         .disabled(!store.canPlay)
@@ -73,7 +76,7 @@ struct HostView: View {
                             store.send(.skipTapped)
                         } label: {
                             Image(systemName: "forward.end.fill")
-                                .font(.system(size: 50))
+                                .font(.system(size: layout.skipControlSize))
                                 .foregroundStyle(.primary)
                         }
                         .accessibilityLabel("Skip song")
@@ -96,36 +99,25 @@ struct HostView: View {
                         .padding(.top, 8)
                     }
 #if DEBUG
-                    Button("DEBUG: Request Music Authorization") {
-                        store.send(.requestMusicAuthorization)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
-                    .padding(.top, 16)
-
-                    Button("DEBUG: Set Now Playing") {
-                        store.send(._debugSetNowPlaying)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    .padding(.top, 8)
+                    debugButtons(layout: layout)
+                        .padding(.top, layout.debugTopPadding)
 #endif
 
                 } else {
                     // Empty State / Nothing Playing
                     Rectangle()
                         .fill(Color.secondary.opacity(0.1))
-                        .aspectRatio(1, contentMode: .fit)
+                        .frame(width: layout.artworkSize, height: layout.artworkSize)
                         .overlay {
                             Image(systemName: "music.note.list")
-                                .font(.system(size: 60))
+                                .font(.system(size: layout.emptyStateIconSize))
                                 .foregroundStyle(.tertiary)
                         }
                         .cornerRadius(12)
-                        .padding(.horizontal, 40)
+                        .padding(.horizontal, layout.horizontalPadding)
 
                     Text("Nothing Playing")
-                        .font(.title)
+                        .font(.system(size: layout.titleFontSize))
                         .foregroundStyle(.secondary)
                         .padding(.top, 20)
                         .accessibilityLabel("Nothing playing")
@@ -133,39 +125,29 @@ struct HostView: View {
                     // Controls (Disabled)
                     HStack(spacing: 40) {
                         Image(systemName: "play.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: layout.playControlSize))
                         Image(systemName: "forward.end.fill")
-                            .font(.system(size: 50))
+                            .font(.system(size: layout.skipControlSize))
                     }
                     .foregroundStyle(.tertiary)
                     .padding(.top, 10)
                     .accessibilityLabel("Controls disabled")
 #if DEBUG
-                    Button("DEBUG: Request Music Authorization") {
-                        store.send(.requestMusicAuthorization)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
-                    .padding(.top, 16)
-
-                    Button("DEBUG: Set Now Playing") {
-                        store.send(._debugSetNowPlaying)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    .padding(.top, 8)
+                    debugButtons(layout: layout)
+                        .padding(.top, layout.debugTopPadding)
 #endif
                 }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical)
-            .background(Color(uiColor: .systemBackground))
-            .layoutPriority(1.5)
+                .frame(maxWidth: .infinity)
+                .frame(maxHeight: proxy.size.height * layout.topMaxHeightFraction, alignment: .top)
+                .padding(.vertical, layout.verticalPadding)
+                .background(Color(uiColor: .systemBackground))
+                .clipped()
 
             Divider()
 
-            // MARK: - Bottom Section: Up Next
-            VStack(alignment: .leading, spacing: 0) {
+                // MARK: - Bottom Section: Up Next
+                VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text("Up Next")
                         .font(.headline)
@@ -249,8 +231,10 @@ struct HostView: View {
                 }
                 .listStyle(.plain)
                 .accessibilityIdentifier("shared_queue_view")
+                .frame(minHeight: layout.queueMinHeight)
             }
             .layoutPriority(1)
+            }
         }
         // MARK: - Status Badge
         .overlay(alignment: .topTrailing) {
@@ -368,6 +352,128 @@ struct HostView: View {
         let minutes = totalSeconds / 60
         let remainder = totalSeconds % 60
         return String(format: "%d:%02d", minutes, remainder)
+    }
+
+#if DEBUG
+    @ViewBuilder
+    private func debugButtons(layout: HostLayout) -> some View {
+        if layout.isCompact {
+            VStack(spacing: layout.debugButtonSpacing) {
+                debugRequestAuthButton(layout: layout)
+                debugSetNowPlayingButton(layout: layout)
+            }
+        } else {
+            HStack(spacing: layout.debugButtonSpacing) {
+                debugRequestAuthButton(layout: layout)
+                debugSetNowPlayingButton(layout: layout)
+            }
+        }
+    }
+
+    private func debugRequestAuthButton(layout: HostLayout) -> some View {
+        Button("DEBUG: Request Music Authorization") {
+            store.send(.requestMusicAuthorization)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.orange)
+        .font(layout.isCompact ? .caption : .body)
+        .controlSize(layout.isCompact ? .small : .regular)
+    }
+
+    private func debugSetNowPlayingButton(layout: HostLayout) -> some View {
+        Button("DEBUG: Set Now Playing") {
+            store.send(._debugSetNowPlaying)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.blue)
+        .font(layout.isCompact ? .caption : .body)
+        .controlSize(layout.isCompact ? .small : .regular)
+    }
+#endif
+}
+
+private struct HostLayout {
+    let availableHeight: CGFloat
+
+    var isCompact: Bool { availableHeight < 700 }
+    var isRegular: Bool { availableHeight < 850 }
+
+    var artworkSize: CGFloat {
+        if isCompact { return 180 }
+        if isRegular { return 260 }
+        return 300
+    }
+
+    var titleFontSize: CGFloat {
+        if isCompact { return 20 }
+        if isRegular { return 26 }
+        return 28
+    }
+
+    var subtitleFontSize: CGFloat {
+        if isCompact { return 15 }
+        if isRegular { return 19 }
+        return 20
+    }
+
+    var playControlSize: CGFloat {
+        if isCompact { return 52 }
+        if isRegular { return 64 }
+        return 70
+    }
+
+    var skipControlSize: CGFloat {
+        if isCompact { return 36 }
+        if isRegular { return 46 }
+        return 50
+    }
+
+    var emptyStateIconSize: CGFloat {
+        if isCompact { return 44 }
+        if isRegular { return 56 }
+        return 60
+    }
+
+    var sectionSpacing: CGFloat {
+        if isCompact { return 14 }
+        if isRegular { return 18 }
+        return 20
+    }
+
+    var verticalPadding: CGFloat {
+        if isCompact { return 8 }
+        if isRegular { return 12 }
+        return 16
+    }
+
+    var horizontalPadding: CGFloat {
+        if isCompact { return 24 }
+        if isRegular { return 32 }
+        return 40
+    }
+
+    var queueMinHeight: CGFloat {
+        if isCompact { return 64 }
+        if isRegular { return 100 }
+        return 160
+    }
+
+    var topMaxHeightFraction: CGFloat {
+        if isCompact { return 0.70 }
+        if isRegular { return 0.70 }
+        return 0.72
+    }
+
+    var debugTopPadding: CGFloat {
+        if isCompact { return 6 }
+        if isRegular { return 10 }
+        return 16
+    }
+
+    var debugButtonSpacing: CGFloat {
+        if isCompact { return 6 }
+        if isRegular { return 8 }
+        return 10
     }
 }
 
