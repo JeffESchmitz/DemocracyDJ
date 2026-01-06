@@ -169,6 +169,6 @@ Use `.previewValue` for SwiftUI previews with mock data. The preview mock automa
 # Open in Xcode
 open DemocracyDJ.xcodeproj
 
-# Build via CLI (requires Xcode 26+)
+# Build via CLI (use Xcode 26.2.0)
 xcodebuild -scheme DemocracyDJ -sdk iphonesimulator build
 ```
