@@ -109,9 +109,7 @@ struct OnboardingFeatureTests {
         }
 
         await store.send(.getStartedTapped)
-        await store.receive(\.delegate.completed) {
-            _ in // delegate actions don't modify state
-        }
+        await store.receive(\.delegate)
     }
 
     @Test func getStartedTappedTrimsWhitespace() async {

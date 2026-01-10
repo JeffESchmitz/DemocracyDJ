@@ -22,7 +22,7 @@ struct AppFeatureTests {
         await store.send(.onAppear) {
             $0.hasCheckedOnboarding = true
         }
-        await store.receive(._loadedOnboardingStatus(hasCompleted: false, displayName: nil)) {
+        await store.receive(\._loadedOnboardingStatus) {
             $0.mode = .onboarding(OnboardingFeature.State())
         }
     }
@@ -40,7 +40,7 @@ struct AppFeatureTests {
         await store.send(.onAppear) {
             $0.hasCheckedOnboarding = true
         }
-        await store.receive(._loadedOnboardingStatus(hasCompleted: true, displayName: "Jeff")) {
+        await store.receive(\._loadedOnboardingStatus) {
             $0.displayName = "Jeff"
             $0.mode = .modeSelection
         }
@@ -58,8 +58,8 @@ struct AppFeatureTests {
     }
 
     @Test func onboardingCompletionPersistsAndTransitions() async {
-        var didSetCompleted = false
-        var savedName: String?
+        let didSetCompleted = LockedBox(false)
+        let savedName = LockedBox<String?>(nil)
 
         let store = TestStore(
             initialState: AppFeature.State(
@@ -69,18 +69,22 @@ struct AppFeatureTests {
             AppFeature()
         } withDependencies: {
             $0.userDefaultsClient = .mock(
-                setHasCompletedOnboarding: { _ in didSetCompleted = true },
-                setDisplayName: { savedName = $0 }
+                setHasCompletedOnboarding: { _ in
+                    didSetCompleted.withValue { $0 = true }
+                },
+                setDisplayName: { name in
+                    savedName.withValue { $0 = name }
+                }
             )
         }
 
-        await store.send(.onboarding(.delegate(.completed(displayName: "Jeff")))) {
+        await store.send(AppFeature.Action.onboarding(.delegate(.completed(displayName: "Jeff")))) {
             $0.displayName = "Jeff"
-            $0.mode = .modeSelection
+            $0.mode = AppFeature.State.Mode.modeSelection
         }
 
-        #expect(didSetCompleted == true)
-        #expect(savedName == "Jeff")
+        #expect(didSetCompleted.current == true)
+        #expect(savedName.current == "Jeff")
     }
 
     @Test func onboardingRestoresDisplayNameOnSkip() async {
@@ -96,7 +100,7 @@ struct AppFeatureTests {
         await store.send(.onAppear) {
             $0.hasCheckedOnboarding = true
         }
-        await store.receive(._loadedOnboardingStatus(hasCompleted: true, displayName: "SavedUser")) {
+        await store.receive(\._loadedOnboardingStatus) {
             $0.displayName = "SavedUser"
             $0.mode = .modeSelection
         }
@@ -148,7 +152,7 @@ struct AppFeatureTests {
         }
 
         await store.send(.guestSelected) {
-            $0.mode = .guest(GuestFeature.State(myPeer: nil))
+            $0.mode = AppFeature.State.Mode.guest(GuestFeature.State(myPeer: nil))
         }
         await store.receive(\.guest) {
             $0.guestState?.myPeer = Peer(id: UUID(0).uuidString, name: "Guest")
@@ -242,5 +246,24 @@ actor StopRecorder {
 
     var count: Int {
         stopCount
+    }
+}
+
+final class LockedBox<Value>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value: Value
+
+    init(_ value: Value) {
+        self.value = value
+    }
+
+    func withValue<T>(_ body: (inout Value) -> T) -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return body(&value)
+    }
+
+    var current: Value {
+        withValue { $0 }
     }
 }

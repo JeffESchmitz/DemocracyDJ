@@ -173,7 +173,10 @@ struct GuestFeatureTests {
             searchQuery: "test",
             searchResults: [Song.previewSong],
             isSearching: true,
-            searchError: "error"
+            searchError: "error",
+            recommendations: [.previewSection1],
+            isLoadingRecommendations: true,
+            recommendationsError: "error"
         )) {
             GuestFeature()
         } withDependencies: {
@@ -190,6 +193,9 @@ struct GuestFeatureTests {
             $0.searchResults = []
             $0.isSearching = false
             $0.searchError = nil
+            $0.recommendations = []
+            $0.isLoadingRecommendations = false
+            $0.recommendationsError = nil
         }
     }
 
@@ -267,6 +273,93 @@ struct GuestFeatureTests {
         await store.receive(\.searchResultsReceived) {
             $0.searchResults = [song]
             $0.isSearching = false
+        }
+    }
+
+    @Test func loadRecommendationsFetchesFromMusicKit() async {
+        let sections = [RecommendationSection.previewSection1]
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(recommendations: { sections })
+        }
+
+        await store.send(.loadRecommendations) {
+            $0.isLoadingRecommendations = true
+            $0.recommendationsError = nil
+        }
+
+        await store.receive(\._recommendationsReceived) {
+            $0.isLoadingRecommendations = false
+            $0.recommendations = sections
+            $0.recommendationsError = nil
+        }
+    }
+
+    @Test func loadRecommendationsSkipsIfAlreadyLoaded() async {
+        let store = TestStore(initialState: GuestFeature.State(
+            recommendations: [.previewSection1]
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.loadRecommendations)
+    }
+
+    @Test func loadRecommendationsSkipsIfLoading() async {
+        let store = TestStore(initialState: GuestFeature.State(
+            isLoadingRecommendations: true
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.loadRecommendations)
+    }
+
+    @Test func recommendationsErrorHandledGracefully() async {
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(recommendations: {
+                throw GuestTestMusicKitError.recommendationsFailed
+            })
+        }
+
+        await store.send(.loadRecommendations) {
+            $0.isLoadingRecommendations = true
+            $0.recommendationsError = nil
+        }
+
+        await store.receive(\._recommendationsError) {
+            $0.isLoadingRecommendations = false
+            $0.recommendationsError = "Recommendations failed"
+        }
+    }
+
+    @Test func searchButtonTappedTriggersRecommendationsLoad() async {
+        let sections = [RecommendationSection.previewSection1]
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.musicKitClient = .mock(recommendations: { sections })
+        }
+
+        await store.send(.searchButtonTapped) {
+            $0.showSearchSheet = true
+            $0.searchError = nil
+        }
+
+        await store.receive(\.loadRecommendations) {
+            $0.isLoadingRecommendations = true
+            $0.recommendationsError = nil
+        }
+
+        await store.receive(\._recommendationsReceived) {
+            $0.isLoadingRecommendations = false
+            $0.recommendations = sections
+            $0.recommendationsError = nil
         }
     }
 
@@ -482,11 +575,14 @@ actor GuestSearchRecorder {
 
 enum GuestTestMusicKitError: Error, LocalizedError {
     case searchFailed
+    case recommendationsFailed
 
     var errorDescription: String? {
         switch self {
         case .searchFailed:
             return "Search failed"
+        case .recommendationsFailed:
+            return "Recommendations failed"
         }
     }
 }

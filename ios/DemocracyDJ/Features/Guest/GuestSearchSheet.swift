@@ -41,7 +41,9 @@ struct GuestSearchSheet: View {
 
     @ViewBuilder
     private var content: some View {
-        if let error = store.searchError {
+        if store.searchQuery.count < 2 {
+            recommendationsContent
+        } else if let error = store.searchError {
             ContentUnavailableView(
                 "Search Error",
                 systemImage: "exclamationmark.triangle",
@@ -51,13 +53,6 @@ struct GuestSearchSheet: View {
         } else if store.isSearching {
             ProgressView()
                 .padding()
-        } else if store.searchQuery.count < 2 {
-            ContentUnavailableView(
-                "Search for Songs",
-                systemImage: "magnifyingglass",
-                description: Text("Type at least 2 characters.")
-            )
-            .padding()
         } else if store.searchResults.isEmpty {
             ContentUnavailableView(
                 "No Results",
@@ -67,42 +62,96 @@ struct GuestSearchSheet: View {
             .padding()
         } else {
             List(store.searchResults) { song in
-                let isDuplicate = isDuplicateSong(song)
-
                 Button {
                     store.send(.songSelected(song))
                 } label: {
-                    HStack(spacing: 12) {
-                        AlbumArtworkView(
-                            url: song.albumArtURL,
-                            title: song.title,
-                            size: 50,
-                            cornerRadius: 8
-                        )
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(song.title)
-                                .font(.body)
-                                .lineLimit(1)
-
-                            Text(song.artist)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-
-                        Spacer()
-
-                        if isDuplicate {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    songRow(song)
                 }
                 .buttonStyle(.plain)
-                .disabled(isDuplicate)
+                .disabled(isDuplicateSong(song))
             }
             .listStyle(.plain)
+        }
+    }
+
+    @ViewBuilder
+    private var recommendationsContent: some View {
+        if store.isLoadingRecommendations {
+            ProgressView("Loading recommendations...")
+                .padding()
+        } else if let error = store.recommendationsError {
+            VStack(spacing: 12) {
+                ContentUnavailableView(
+                    "Recommendations Unavailable",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(error)
+                )
+
+                Button("Retry") {
+                    store.send(.loadRecommendations)
+                }
+                .buttonStyle(.bordered)
+            }
+            .padding()
+        } else if store.recommendations.isEmpty {
+            ContentUnavailableView(
+                "Search for Songs",
+                systemImage: "magnifyingglass",
+                description: Text("Type at least 2 characters.")
+            )
+            .padding()
+        } else {
+            recommendationsList
+        }
+    }
+
+    private var recommendationsList: some View {
+        List {
+            ForEach(store.recommendations) { section in
+                Section(section.title) {
+                    ForEach(section.songs) { song in
+                        Button {
+                            store.send(.songSelected(song))
+                        } label: {
+                            songRow(song)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isDuplicateSong(song))
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    private func songRow(_ song: Song) -> some View {
+        let isDuplicate = isDuplicateSong(song)
+
+        return HStack(spacing: 12) {
+            AlbumArtworkView(
+                url: song.albumArtURL,
+                title: song.title,
+                size: 50,
+                cornerRadius: 8
+            )
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(song.title)
+                    .font(.body)
+                    .lineLimit(1)
+
+                Text(song.artist)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            if isDuplicate {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -122,6 +171,25 @@ struct GuestSearchSheet: View {
                 searchQuery: "",
                 searchResults: [],
                 isSearching: false
+            )
+        ) {
+            GuestFeature()
+        }
+    )
+}
+
+#Preview("Recommendations") {
+    GuestSearchSheet(
+        store: Store(
+            initialState: GuestFeature.State(
+                myPeer: Peer(name: "Guest"),
+                hostSnapshot: HostSnapshot(
+                    nowPlaying: .previewSong,
+                    queue: .previewQueue,
+                    connectedPeers: []
+                ),
+                searchQuery: "",
+                recommendations: .previewRecommendations
             )
         ) {
             GuestFeature()
