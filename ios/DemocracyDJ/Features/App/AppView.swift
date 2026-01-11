@@ -71,10 +71,9 @@ private struct SplashView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 18) {
-                Image("LaunchIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 110, height: 110)
+                Image(systemName: "music.note.list")
+                    .font(.system(size: 96, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.95))
                     .shadow(radius: 12)
 
                 Text("DemocracyDJ")
