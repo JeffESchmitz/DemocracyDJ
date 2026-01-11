@@ -61,6 +61,7 @@ struct GuestFeature {
 
 #if DEBUG
         case debugLoadSample
+        case debugLoadRecommendations
 #endif
     }
 
@@ -307,6 +308,12 @@ struct GuestFeature {
                 state.connectionStatus = .connected(host: host)
                 state.hostSnapshot = Self.debugSnapshot
                 state.pendingVotes = ["song-debug-3"]
+                return .none
+
+            case .debugLoadRecommendations:
+                state.isLoadingRecommendations = false
+                state.recommendationsError = nil
+                state.recommendations = .previewRecommendations
                 return .none
 #endif
             }
