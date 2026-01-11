@@ -343,12 +343,16 @@ struct GuestFeatureTests {
         let store = TestStore(initialState: GuestFeature.State()) {
             GuestFeature()
         } withDependencies: {
-            $0.musicKitClient = .mock(recommendations: { sections })
+            $0.musicKitClient = .mock(
+                currentAuthorizationStatus: { .authorized },
+                recommendations: { sections }
+            )
         }
 
         await store.send(.searchButtonTapped) {
             $0.showSearchSheet = true
             $0.searchError = nil
+            $0.musicAuthorizationStatus = .authorized
         }
 
         await store.receive(\.loadRecommendations) {

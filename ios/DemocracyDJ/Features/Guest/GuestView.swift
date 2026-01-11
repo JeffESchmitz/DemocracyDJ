@@ -46,6 +46,7 @@ struct GuestView: View {
         ) {
             GuestSearchSheet(store: store)
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     private var connectionStatusSection: some View {
