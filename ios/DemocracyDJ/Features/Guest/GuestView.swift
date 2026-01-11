@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Shared
 import SwiftUI
+import UIKit
 
 struct GuestView: View {
     @Bindable var store: StoreOf<GuestFeature>
@@ -137,15 +138,12 @@ struct GuestView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let song = store.hostSnapshot?.nowPlaying {
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.3))
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 50))
-                            .foregroundStyle(.secondary)
-                    }
-                    .cornerRadius(12)
+                AlbumArtworkView(
+                    url: song.albumArtURL,
+                    title: song.title,
+                    size: nowPlayingArtworkSize,
+                    cornerRadius: 12
+                )
                     .padding(.horizontal, 40)
 
                 VStack(spacing: 4) {
@@ -234,6 +232,10 @@ struct GuestView: View {
             return true
         }
         return false
+    }
+
+    private var nowPlayingArtworkSize: CGFloat {
+        min(UIScreen.main.bounds.width - 80, 260)
     }
 
     private var isConnected: Bool {

@@ -12,7 +12,6 @@ import Testing
 }
 
 @Test func songEncodesAndDecodes() throws {
-    let peer = Peer(name: "Santiago")
     let song = Song(
         id: "music-123",
         title: "Master of Puppets",

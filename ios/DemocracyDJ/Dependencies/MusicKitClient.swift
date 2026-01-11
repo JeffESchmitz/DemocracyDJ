@@ -5,7 +5,7 @@ import Shared
 
 // Invariant:
 // MusicKitClient is owned by HostFeature for playback.
-// GuestFeature may use MusicKitClient.search() only (no playback).
+// GuestFeature may use MusicKitClient.search() and recommendations only (no playback).
 // AppFeature must never depend on this client.
 
 /// TCA dependency for MusicKit search and playback.
@@ -13,6 +13,7 @@ import Shared
 struct MusicKitClient: Sendable {
     var requestAuthorization: @Sendable () async -> MusicAuthorization.Status
     var search: @Sendable (_ query: String) async throws -> [Shared.Song]
+    var recommendations: @Sendable () async throws -> [RecommendationSection]
     var play: @Sendable (_ song: Shared.Song) async throws -> Void
     var pause: @Sendable () async -> Void
     var skip: @Sendable () async -> Void
@@ -27,6 +28,12 @@ struct PlaybackStatus: Equatable, Sendable {
     var duration: TimeInterval
 
     static let notPlaying = PlaybackStatus(isPlaying: false, currentTime: 0, duration: 0)
+}
+
+struct RecommendationSection: Equatable, Sendable, Identifiable {
+    let id: String
+    let title: String
+    let songs: [Shared.Song]
 }
 
 struct SubscriptionStatus: Equatable, Sendable {
@@ -72,6 +79,85 @@ extension MusicKitClient {
                         albumArtURL: song.artwork?.url(width: 300, height: 300),
                         duration: song.duration ?? 0
                     )
+                }
+            },
+            recommendations: {
+                guard MusicAuthorization.currentStatus == .authorized else {
+                    return []
+                }
+
+                do {
+                    var request = MusicPersonalRecommendationsRequest()
+                    request.limit = 5
+                    let response = try await request.response()
+                    var sections: [RecommendationSection] = []
+
+                    for recommendation in response.recommendations {
+                        for playlist in recommendation.playlists {
+                            guard sections.count < 5 else {
+                                break
+                            }
+
+                            let detailedPlaylist = try await playlist.with([.tracks])
+                            let tracks = detailedPlaylist.tracks ?? []
+                            let songs = tracks.prefix(10).compactMap { entry -> Shared.Song? in
+                                guard case let .song(mkSong) = entry else {
+                                    return nil
+                                }
+                                return Shared.Song(
+                                    id: mkSong.id.rawValue,
+                                    title: mkSong.title,
+                                    artist: mkSong.artistName,
+                                    albumArtURL: mkSong.artwork?.url(width: 300, height: 300),
+                                    duration: mkSong.duration ?? 0
+                                )
+                            }
+
+                            if !songs.isEmpty {
+                                sections.append(RecommendationSection(
+                                    id: playlist.id.rawValue,
+                                    title: playlist.name,
+                                    songs: songs
+                                ))
+                            }
+                        }
+
+                        for album in recommendation.albums {
+                            guard sections.count < 5 else {
+                                break
+                            }
+
+                            let detailedAlbum = try await album.with([.tracks])
+                            let tracks = detailedAlbum.tracks ?? []
+                            let songs = tracks.prefix(10).map { mkSong in
+                                Shared.Song(
+                                    id: mkSong.id.rawValue,
+                                    title: mkSong.title,
+                                    artist: mkSong.artistName,
+                                    albumArtURL: mkSong.artwork?.url(width: 300, height: 300),
+                                    duration: mkSong.duration ?? 0
+                                )
+                            }
+
+                            if !songs.isEmpty {
+                                sections.append(RecommendationSection(
+                                    id: album.id.rawValue,
+                                    title: album.title,
+                                    songs: songs
+                                ))
+                            }
+                        }
+
+                        if sections.count >= 5 {
+                            break
+                        }
+                    }
+
+                    return sections
+                } catch let error as URLError {
+                    throw error
+                } catch {
+                    return []
                 }
             },
             play: { song in
@@ -166,6 +252,7 @@ extension MusicKitClient {
             MusicAuthorization.Status.notDetermined
         },
         search: @escaping @Sendable (String) async throws -> [Shared.Song] = { _ in [] },
+        recommendations: @escaping @Sendable () async throws -> [RecommendationSection] = { [] },
         play: @escaping @Sendable (Shared.Song) async throws -> Void = { _ in },
         pause: @escaping @Sendable () async -> Void = {},
         skip: @escaping @Sendable () async -> Void = {},
@@ -180,6 +267,7 @@ extension MusicKitClient {
         MusicKitClient(
             requestAuthorization: requestAuthorization,
             search: search,
+            recommendations: recommendations,
             play: play,
             pause: pause,
             skip: skip,
@@ -194,6 +282,7 @@ extension MusicKitClient {
     static let preview = MusicKitClient(
         requestAuthorization: { MusicAuthorization.Status.notDetermined },
         search: { _ in [] },
+        recommendations: { [] },
         play: { _ in },
         pause: { },
         skip: { },

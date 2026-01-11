@@ -44,6 +44,27 @@ extension Song {
     )
 }
 
+extension RecommendationSection {
+    static let previewSection1 = RecommendationSection(
+        id: "rec-1",
+        title: "For You",
+        songs: [.previewSong, .previewSong2]
+    )
+
+    static let previewSection2 = RecommendationSection(
+        id: "rec-2",
+        title: "Today's Hits",
+        songs: [.previewSong3]
+    )
+}
+
+extension Array where Element == RecommendationSection {
+    static let previewRecommendations: [RecommendationSection] = [
+        .previewSection1,
+        .previewSection2
+    ]
+}
+
 extension Array where Element == QueueItem {
     static let previewQueue: [QueueItem] = [
         QueueItem(

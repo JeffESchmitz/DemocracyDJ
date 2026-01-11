@@ -19,6 +19,9 @@ struct GuestFeature {
         var searchResults: [Song] = []
         var isSearching: Bool = false
         var searchError: String?
+        var recommendations: [RecommendationSection] = []
+        var isLoadingRecommendations: Bool = false
+        var recommendationsError: String?
 
         enum ConnectionStatus: Equatable {
             case disconnected
@@ -42,6 +45,9 @@ struct GuestFeature {
         case searchButtonTapped
         case searchQueryChanged(String)
         case searchResultsReceived([Song])
+        case loadRecommendations
+        case _recommendationsReceived([RecommendationSection])
+        case _recommendationsError(String)
         case songSelected(Song)
         case dismissSearch
 
@@ -66,6 +72,7 @@ struct GuestFeature {
     private enum CancelID {
         case multipeerEvents
         case search
+        case recommendations
     }
 
     var body: some ReducerOf<Self> {
@@ -102,13 +109,17 @@ struct GuestFeature {
                 state.searchResults = []
                 state.isSearching = false
                 state.searchError = nil
+                state.recommendations = []
+                state.isLoadingRecommendations = false
+                state.recommendationsError = nil
 
                 return .merge(
                     .run { _ in
                         await multipeerClient.stop()
                     },
                     .cancel(id: CancelID.multipeerEvents),
-                    .cancel(id: CancelID.search)
+                    .cancel(id: CancelID.search),
+                    .cancel(id: CancelID.recommendations)
                 )
 
             case .exitTapped:
@@ -163,7 +174,7 @@ struct GuestFeature {
             case .searchButtonTapped:
                 state.showSearchSheet = true
                 state.searchError = nil
-                return .none
+                return .send(.loadRecommendations)
 
             case let .searchQueryChanged(query):
                 state.searchQuery = query
@@ -192,6 +203,39 @@ struct GuestFeature {
             case let .searchResultsReceived(results):
                 state.isSearching = false
                 state.searchResults = results
+                return .none
+
+            case .loadRecommendations:
+                guard !state.isLoadingRecommendations else {
+                    return .none
+                }
+
+                guard state.recommendations.isEmpty else {
+                    return .none
+                }
+
+                state.isLoadingRecommendations = true
+                state.recommendationsError = nil
+
+                return .run { send in
+                    do {
+                        let sections = try await musicKitClient.recommendations()
+                        await send(._recommendationsReceived(sections))
+                    } catch {
+                        await send(._recommendationsError(error.localizedDescription))
+                    }
+                }
+                .cancellable(id: CancelID.recommendations, cancelInFlight: true)
+
+            case let ._recommendationsReceived(sections):
+                state.isLoadingRecommendations = false
+                state.recommendations = sections
+                state.recommendationsError = nil
+                return .none
+
+            case let ._recommendationsError(message):
+                state.isLoadingRecommendations = false
+                state.recommendationsError = message
                 return .none
 
             case let .songSelected(song):
