@@ -5,6 +5,7 @@ import UIKit
 
 struct GuestView: View {
     @Bindable var store: StoreOf<GuestFeature>
+    @State private var isSuggestSongExpanded = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -18,15 +19,27 @@ struct GuestView: View {
 #endif
 
             connectionStatusSection
+                .contentShape(Rectangle())
+                .simultaneousGesture(TapGesture().onEnded {
+                    collapseSuggestSong()
+                })
 
             Divider()
 
             switch store.connectionStatus {
             case .disconnected, .browsing, .connecting, .failed:
                 browsingSection
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(TapGesture().onEnded {
+                        collapseSuggestSong()
+                    })
 
             case .connected:
                 connectedSection
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(TapGesture().onEnded {
+                        collapseSuggestSong()
+                    })
             }
 
             Divider()
@@ -203,28 +216,44 @@ struct GuestView: View {
 
     private var suggestSongSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Suggest a Song")
-                .font(.headline)
+            Button {
+                isSuggestSongExpanded.toggle()
+            } label: {
+                HStack {
+                    Text("Suggest a Song")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .rotationEffect(.degrees(isSuggestSongExpanded ? 0 : -90))
+                        .foregroundStyle(.secondary)
+                }
                 .padding(.horizontal)
                 .padding(.top, 12)
-
-            List {
-                Button {
-                    store.send(.searchButtonTapped)
-                } label: {
-                    HStack {
-                        Text("Search Apple Music")
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .accessibilityIdentifier("add_song_button")
             }
-            .listStyle(.plain)
+            .buttonStyle(.plain)
+
+            if isSuggestSongExpanded {
+                List {
+                    Button {
+                        store.send(.searchButtonTapped)
+                    } label: {
+                        HStack {
+                            Text("Search Apple Music")
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityIdentifier("add_song_button")
+                }
+                .listStyle(.plain)
+            }
         }
     }
 
@@ -274,6 +303,10 @@ struct GuestView: View {
         case .failed:
             return "Connection Failed"
         }
+    }
+
+    private func collapseSuggestSong() {
+        isSuggestSongExpanded = false
     }
 }
 
