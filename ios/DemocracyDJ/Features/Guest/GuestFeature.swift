@@ -1,6 +1,9 @@
 import ComposableArchitecture
+import Dependencies
 import Foundation
 import Shared
+import struct MusicKit.MusicAuthorization
+import UIKit
 
 @Reducer
 struct GuestFeature {
@@ -22,6 +25,8 @@ struct GuestFeature {
         var recommendations: [RecommendationSection] = []
         var isLoadingRecommendations: Bool = false
         var recommendationsError: String?
+        var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+        @Presents var alert: AlertState<Action.Alert>?
 
         enum ConnectionStatus: Equatable {
             case disconnected
@@ -50,6 +55,13 @@ struct GuestFeature {
         case _recommendationsError(String)
         case songSelected(Song)
         case dismissSearch
+        case _authorizationStatusUpdated(MusicAuthorization.Status)
+        case alert(PresentationAction<Alert>)
+
+        enum Alert: Equatable {
+            case openSettings
+            case dismiss
+        }
 
         // MARK: - Network
         case multipeerEvent(MultipeerEvent)
@@ -61,6 +73,7 @@ struct GuestFeature {
 
 #if DEBUG
         case debugLoadSample
+        case debugLoadRecommendations
 #endif
     }
 
@@ -68,6 +81,7 @@ struct GuestFeature {
     @Dependency(\.musicKitClient) var musicKitClient
     @Dependency(\.continuousClock) var clock
     @Dependency(\.uuid) var uuid
+    @Dependency(\.openURL) var openURL
 
     private enum CancelID {
         case multipeerEvents
@@ -112,6 +126,7 @@ struct GuestFeature {
                 state.recommendations = []
                 state.isLoadingRecommendations = false
                 state.recommendationsError = nil
+                state.alert = nil
 
                 return .merge(
                     .run { _ in
@@ -172,9 +187,35 @@ struct GuestFeature {
                 }
 
             case .searchButtonTapped:
-                state.showSearchSheet = true
-                state.searchError = nil
-                return .send(.loadRecommendations)
+                let currentStatus = musicKitClient.currentAuthorizationStatus()
+                state.musicAuthorizationStatus = currentStatus
+
+                switch currentStatus {
+                case .authorized:
+                    state.showSearchSheet = true
+                    state.searchError = nil
+                    return .send(.loadRecommendations)
+
+                case .notDetermined:
+                    return .run { send in
+                        let status = await musicKitClient.requestAuthorization()
+                        await send(._authorizationStatusUpdated(status))
+                    }
+
+                case .denied, .restricted:
+                    state.alert = AlertState {
+                        TextState("Music Access Required")
+                    } actions: {
+                        ButtonState(action: .openSettings) { TextState("Open Settings") }
+                        ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+                    } message: {
+                        TextState("Please authorize Apple Music to search for songs.")
+                    }
+                    return .none
+
+                @unknown default:
+                    return .none
+                }
 
             case let .searchQueryChanged(query):
                 state.searchQuery = query
@@ -300,6 +341,42 @@ struct GuestFeature {
                 state.searchError = message
                 return .none
 
+            case let ._authorizationStatusUpdated(status):
+                state.musicAuthorizationStatus = status
+
+                if status == .authorized {
+                    state.showSearchSheet = true
+                    state.searchError = nil
+                    return .send(.loadRecommendations)
+                }
+
+                state.alert = AlertState {
+                    TextState("Music Access Required")
+                } actions: {
+                    ButtonState(action: .openSettings) { TextState("Open Settings") }
+                    ButtonState(role: .cancel, action: .dismiss) { TextState("Cancel") }
+                } message: {
+                    TextState("Please authorize Apple Music to search for songs.")
+                }
+                return .none
+
+            case .alert(.presented(.openSettings)):
+                state.alert = nil
+                return .run { _ in
+                    guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else {
+                        return
+                    }
+                    await openURL(settingsURL)
+                }
+
+            case .alert(.presented(.dismiss)):
+                state.alert = nil
+                return .none
+
+            case .alert(.dismiss):
+                state.alert = nil
+                return .none
+
 #if DEBUG
             case .debugLoadSample:
                 let host = Peer(name: "Debug Host")
@@ -308,9 +385,16 @@ struct GuestFeature {
                 state.hostSnapshot = Self.debugSnapshot
                 state.pendingVotes = ["song-debug-3"]
                 return .none
+
+            case .debugLoadRecommendations:
+                state.isLoadingRecommendations = false
+                state.recommendationsError = nil
+                state.recommendations = .previewRecommendations
+                return .none
 #endif
             }
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 }
 

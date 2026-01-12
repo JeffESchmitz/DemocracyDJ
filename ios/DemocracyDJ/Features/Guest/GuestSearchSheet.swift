@@ -32,6 +32,14 @@ struct GuestSearchSheet: View {
                         store.send(.dismissSearch)
                     }
                 }
+#if DEBUG
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Debug Recs") {
+                        store.send(.debugLoadRecommendations)
+                    }
+                    .tint(.orange)
+                }
+#endif
             }
             .onAppear {
                 isSearchFocused = true

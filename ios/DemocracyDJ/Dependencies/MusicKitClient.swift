@@ -11,6 +11,7 @@ import Shared
 /// TCA dependency for MusicKit search and playback.
 /// Maps MusicKit.Song to Shared.Song at the dependency boundary.
 struct MusicKitClient: Sendable {
+    var currentAuthorizationStatus: @Sendable () -> MusicAuthorization.Status
     var requestAuthorization: @Sendable () async -> MusicAuthorization.Status
     var search: @Sendable (_ query: String) async throws -> [Shared.Song]
     var recommendations: @Sendable () async throws -> [RecommendationSection]
@@ -64,6 +65,9 @@ extension DependencyValues {
 extension MusicKitClient {
     static let live: MusicKitClient = {
         MusicKitClient(
+            currentAuthorizationStatus: {
+                MusicAuthorization.currentStatus
+            },
             requestAuthorization: {
                 await MusicAuthorization.request()
             },
@@ -248,6 +252,9 @@ extension MusicKitClient {
     }()
 
     static func mock(
+        currentAuthorizationStatus: @escaping @Sendable () -> MusicAuthorization.Status = {
+            MusicAuthorization.Status.notDetermined
+        },
         requestAuthorization: @escaping @Sendable () async -> MusicAuthorization.Status = {
             MusicAuthorization.Status.notDetermined
         },
@@ -265,6 +272,7 @@ extension MusicKitClient {
         checkSubscription: @escaping @Sendable () async -> SubscriptionStatus = { .unknown }
     ) -> Self {
         MusicKitClient(
+            currentAuthorizationStatus: currentAuthorizationStatus,
             requestAuthorization: requestAuthorization,
             search: search,
             recommendations: recommendations,
@@ -280,6 +288,7 @@ extension MusicKitClient {
     static let mock = MusicKitClient.mock()
 
     static let preview = MusicKitClient(
+        currentAuthorizationStatus: { MusicAuthorization.Status.notDetermined },
         requestAuthorization: { MusicAuthorization.Status.notDetermined },
         search: { _ in [] },
         recommendations: { [] },

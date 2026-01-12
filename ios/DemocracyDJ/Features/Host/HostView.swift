@@ -16,224 +16,220 @@ struct HostView: View {
             VStack(spacing: 0) {
                 // MARK: - Top Section: Now Playing (adaptive sizing)
                 VStack(spacing: layout.sectionSpacing) {
-                if let song = store.nowPlaying {
-                    AlbumArtworkView(
-                        url: song.albumArtURL,
-                        title: song.title,
-                        size: layout.artworkSize,
-                        cornerRadius: 12
-                    )
-                    .padding(.horizontal, layout.horizontalPadding)
-
-                    VStack(spacing: 8) {
-                        Text(song.title)
-                            .font(.system(size: layout.titleFontSize, weight: .bold))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                            .accessibilityLabel("Now playing: \(song.title)")
-
-                        Text(song.artist)
-                            .font(.system(size: layout.subtitleFontSize))
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel("Artist: \(song.artist)")
-                    }
-
-                    VStack(spacing: 4) {
-                        ProgressView(
-                            value: store.playbackStatus.currentTime,
-                            total: max(store.playbackStatus.duration, 1)
-                        )
-                        .progressViewStyle(.linear)
-
-                        HStack {
-                            Text(formatTime(store.playbackStatus.currentTime))
-                            Spacer()
-                            Text(formatTime(store.playbackStatus.duration))
-                        }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, layout.horizontalPadding)
-
-                    // Controls (Active)
-                    HStack(spacing: 40) {
-                        Button {
-                            if store.isPlaying {
-                                store.send(.pauseTapped)
-                            } else {
-                                store.send(.playTapped)
-                            }
-                        } label: {
-                            Image(systemName: store.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: layout.playControlSize))
-                                .foregroundStyle(.primary)
-                        }
-                        .disabled(!store.canPlay)
-                        .accessibilityLabel(store.isPlaying ? "Pause" : "Play")
-                        .accessibilityHint(store.isPlaying ? "Pauses playback" : "Resumes playback")
-
-                        Button {
-                            store.send(.skipTapped)
-                        } label: {
-                            Image(systemName: "forward.end.fill")
-                                .font(.system(size: layout.skipControlSize))
-                                .foregroundStyle(.primary)
-                        }
-                        .accessibilityLabel("Skip song")
-                    }
-                    .padding(.top, 10)
-
-                    if store.musicAuthorizationStatus == .authorized,
-                       !store.subscriptionStatus.canPlayCatalogContent {
-                        VStack(spacing: 4) {
-                            Text("Apple Music subscription required")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-
-                            if store.subscriptionStatus.canBecomeSubscriber,
-                               let subscribeURL = URL(string: "https://music.apple.com/subscribe") {
-                                Link("Subscribe to Apple Music", destination: subscribeURL)
-                                    .font(.caption)
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
 #if DEBUG
                     debugButtons(layout: layout)
-                        .padding(.top, layout.debugTopPadding)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 8)
 #endif
-
-                } else {
-                    // Empty State / Nothing Playing
-                    Rectangle()
-                        .fill(Color.secondary.opacity(0.1))
-                        .frame(width: layout.artworkSize, height: layout.artworkSize)
-                        .overlay {
-                            Image(systemName: "music.note.list")
-                                .font(.system(size: layout.emptyStateIconSize))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .cornerRadius(12)
+                    if let song = store.nowPlaying {
+                        AlbumArtworkView(
+                            url: song.albumArtURL,
+                            title: song.title,
+                            size: layout.artworkSize,
+                            cornerRadius: 12
+                        )
                         .padding(.horizontal, layout.horizontalPadding)
 
-                    Text("Nothing Playing")
-                        .font(.system(size: layout.titleFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 20)
-                        .accessibilityLabel("Nothing playing")
+                        VStack(spacing: 8) {
+                            Text(song.title)
+                                .font(.system(size: layout.titleFontSize, weight: .bold))
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .accessibilityLabel("Now playing: \(song.title)")
 
-                    // Controls (Disabled)
-                    HStack(spacing: 40) {
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: layout.playControlSize))
-                        Image(systemName: "forward.end.fill")
-                            .font(.system(size: layout.skipControlSize))
+                            Text(song.artist)
+                                .font(.system(size: layout.subtitleFontSize))
+                                .foregroundStyle(.secondary)
+                                .accessibilityLabel("Artist: \(song.artist)")
+                        }
+
+                        VStack(spacing: 4) {
+                            ProgressView(
+                                value: store.playbackStatus.currentTime,
+                                total: max(store.playbackStatus.duration, 1)
+                            )
+                            .progressViewStyle(.linear)
+
+                            HStack {
+                                Text(formatTime(store.playbackStatus.currentTime))
+                                Spacer()
+                                Text(formatTime(store.playbackStatus.duration))
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal, layout.horizontalPadding)
+
+                        // Controls (Active)
+                        HStack(spacing: 40) {
+                            Button {
+                                if store.isPlaying {
+                                    store.send(.pauseTapped)
+                                } else {
+                                    store.send(.playTapped)
+                                }
+                            } label: {
+                                Image(systemName: store.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                    .font(.system(size: layout.playControlSize))
+                                    .foregroundStyle(.primary)
+                            }
+                            .disabled(!store.canPlay)
+                            .accessibilityLabel(store.isPlaying ? "Pause" : "Play")
+                            .accessibilityHint(store.isPlaying ? "Pauses playback" : "Resumes playback")
+
+                            Button {
+                                store.send(.skipTapped)
+                            } label: {
+                                Image(systemName: "forward.end.fill")
+                                    .font(.system(size: layout.skipControlSize))
+                                    .foregroundStyle(.primary)
+                            }
+                            .accessibilityLabel("Skip song")
+                        }
+                        .padding(.top, 10)
+
+                        if store.musicAuthorizationStatus == .authorized,
+                           !store.subscriptionStatus.canPlayCatalogContent {
+                            VStack(spacing: 4) {
+                                Text("Apple Music subscription required")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+
+                                if store.subscriptionStatus.canBecomeSubscriber,
+                                   let subscribeURL = URL(string: "https://music.apple.com/subscribe") {
+                                    Link("Subscribe to Apple Music", destination: subscribeURL)
+                                        .font(.caption)
+                                }
+                            }
+                            .padding(.top, 8)
+                        }
+                    } else {
+                        // Empty State / Nothing Playing
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.1))
+                            .frame(width: layout.artworkSize, height: layout.artworkSize)
+                            .overlay {
+                                Image(systemName: "music.note.list")
+                                    .font(.system(size: layout.emptyStateIconSize))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .cornerRadius(12)
+                            .padding(.horizontal, layout.horizontalPadding)
+
+                        Text("Nothing Playing")
+                            .font(.system(size: layout.titleFontSize))
+                            .foregroundStyle(.secondary)
+                            .padding(.top, 20)
+                            .accessibilityLabel("Nothing playing")
+
+                        // Controls (Disabled)
+                        HStack(spacing: 40) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: layout.playControlSize))
+                            Image(systemName: "forward.end.fill")
+                                .font(.system(size: layout.skipControlSize))
+                        }
+                        .foregroundStyle(.tertiary)
+                        .padding(.top, 10)
+                        .accessibilityLabel("Controls disabled")
                     }
-                    .foregroundStyle(.tertiary)
-                    .padding(.top, 10)
-                    .accessibilityLabel("Controls disabled")
-#if DEBUG
-                    debugButtons(layout: layout)
-                        .padding(.top, layout.debugTopPadding)
-#endif
                 }
-            }
                 .frame(maxWidth: .infinity)
                 .frame(maxHeight: proxy.size.height * layout.topMaxHeightFraction, alignment: .top)
                 .padding(.vertical, layout.verticalPadding)
                 .background(Color(uiColor: .systemBackground))
                 .clipped()
 
-            Divider()
+                Divider()
 
                 // MARK: - Bottom Section: Up Next
                 VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text("Up Next")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                        .accessibilityAddTraits(.isHeader)
+                    HStack {
+                        Text("Up Next")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                            .accessibilityAddTraits(.isHeader)
 
-                    Spacer()
+                        Spacer()
 
-                    Button {
-                        store.send(.addSongTapped)
-                    } label: {
-                        Label("Add", systemImage: "plus.circle.fill")
-                            .font(.subheadline)
+                        Button {
+                            store.send(.addSongTapped)
+                        } label: {
+                            Label("Add", systemImage: "plus.circle.fill")
+                                .font(.subheadline)
+                        }
+                        .disabled(store.musicAuthorizationStatus != .authorized)
+                        .accessibilityIdentifier("add_song_button")
                     }
-                    .disabled(store.musicAuthorizationStatus != .authorized)
-                    .accessibilityIdentifier("add_song_button")
-                }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(uiColor: .secondarySystemBackground))
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(uiColor: .secondarySystemBackground))
 
-                List {
-                    // Render queue EXACTLY as given. Do not sort.
-                    ForEach(Array(store.queue.enumerated()), id: \.element.id) { index, item in
-                        HStack(spacing: 16) {
-                            // Position Number
-                            Text("\(index + 1)")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                                .frame(width: 30)
-                                .accessibilityLabel("Position \(index + 1)")
-
-                            // Text-Only Info
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.song.title)
-                                    .font(.body)
-                                    .fontWeight(.medium)
-                                    .lineLimit(1)
-
-                                Text("Added by \(item.addedBy.name)")
-                                    .font(.caption)
+                    List {
+                        // Render queue EXACTLY as given. Do not sort.
+                        ForEach(Array(store.queue.enumerated()), id: \.element.id) { index, item in
+                            HStack(spacing: 16) {
+                                // Position Number
+                                Text("\(index + 1)")
+                                    .font(.headline)
                                     .foregroundStyle(.secondary)
-                            }
+                                    .frame(width: 30)
+                                    .accessibilityLabel("Position \(index + 1)")
 
-                            Spacer()
+                                // Text-Only Info
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.song.title)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                        .lineLimit(1)
 
-                            // Vote Badge (Source: item.voters.count)
-                            HStack(spacing: 4) {
-                                Image(systemName: "hand.thumbsup.fill")
-                                    .font(.caption)
-                                Text("\(item.voters.count)")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .monospacedDigit()
+                                    Text("Added by \(item.addedBy.name)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                // Vote Badge (Source: item.voters.count)
+                                HStack(spacing: 4) {
+                                    Image(systemName: "hand.thumbsup.fill")
+                                        .font(.caption)
+                                    Text("\(item.voters.count)")
+                                        .font(.subheadline)
+                                        .fontWeight(.bold)
+                                        .monospacedDigit()
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color.secondary.opacity(0.1))
+                                .foregroundStyle(.primary)
+                                .clipShape(Capsule())
+                                .accessibilityLabel("\(item.voters.count) votes")
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.secondary.opacity(0.1))
-                            .foregroundStyle(.primary)
-                            .clipShape(Capsule())
-                            .accessibilityLabel("\(item.voters.count) votes")
-                        }
-                        .padding(.vertical, 4)
-                        .listRowSeparator(.hidden)
-                        .accessibilityIdentifier("song_row_\(item.id)")
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                store.send(.removeSongTapped(id: item.id))
-                            } label: {
-                                Label("Remove", systemImage: "trash")
+                            .padding(.vertical, 4)
+                            .listRowSeparator(.hidden)
+                            .accessibilityIdentifier("song_row_\(item.id)")
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    store.send(.removeSongTapped(id: item.id))
+                                } label: {
+                                    Label("Remove", systemImage: "trash")
+                                }
                             }
-                        }
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                store.send(.removeSongTapped(id: item.id))
-                            } label: {
-                                Label("Remove from Queue", systemImage: "trash")
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    store.send(.removeSongTapped(id: item.id))
+                                } label: {
+                                    Label("Remove from Queue", systemImage: "trash")
+                                }
                             }
                         }
                     }
+                    .listStyle(.plain)
+                    .accessibilityIdentifier("shared_queue_view")
+                    .frame(minHeight: layout.queueMinHeight)
                 }
-                .listStyle(.plain)
-                .accessibilityIdentifier("shared_queue_view")
-                .frame(minHeight: layout.queueMinHeight)
-            }
-            .layoutPriority(1)
+                .layoutPriority(1)
             }
         }
         // MARK: - Status Badge
@@ -371,23 +367,23 @@ struct HostView: View {
     }
 
     private func debugRequestAuthButton(layout: HostLayout) -> some View {
-        Button("DEBUG: Request Music Authorization") {
+        Button("DEBUG: Music Auth") {
             store.send(.requestMusicAuthorization)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.bordered)
         .tint(.orange)
-        .font(layout.isCompact ? .caption : .body)
-        .controlSize(layout.isCompact ? .small : .regular)
+        .font(.caption2)
+        .controlSize(.mini)
     }
 
     private func debugSetNowPlayingButton(layout: HostLayout) -> some View {
-        Button("DEBUG: Set Now Playing") {
+        Button("DEBUG: Now Playing") {
             store.send(._debugSetNowPlaying)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.bordered)
         .tint(.blue)
-        .font(layout.isCompact ? .caption : .body)
-        .controlSize(layout.isCompact ? .small : .regular)
+        .font(.caption2)
+        .controlSize(.mini)
     }
 #endif
 }
@@ -464,16 +460,10 @@ private struct HostLayout {
         return 0.72
     }
 
-    var debugTopPadding: CGFloat {
-        if isCompact { return 6 }
-        if isRegular { return 10 }
-        return 16
-    }
-
     var debugButtonSpacing: CGFloat {
-        if isCompact { return 6 }
-        if isRegular { return 8 }
-        return 10
+        if isCompact { return 4 }
+        if isRegular { return 6 }
+        return 8
     }
 }
 
