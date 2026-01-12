@@ -29,17 +29,9 @@ struct GuestView: View {
             switch store.connectionStatus {
             case .disconnected, .browsing, .connecting, .failed:
                 browsingSection
-                    .contentShape(Rectangle())
-                    .simultaneousGesture(TapGesture().onEnded {
-                        collapseSuggestSong()
-                    })
 
             case .connected:
                 connectedSection
-                    .contentShape(Rectangle())
-                    .simultaneousGesture(TapGesture().onEnded {
-                        collapseSuggestSong()
-                    })
             }
 
             Divider()
@@ -188,6 +180,10 @@ struct GuestView: View {
             }
         }
         .padding()
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded {
+            collapseSuggestSong()
+        })
     }
 
     private var voteQueueSection: some View {

@@ -18,6 +18,8 @@ struct HostView: View {
                 VStack(spacing: layout.sectionSpacing) {
 #if DEBUG
                     debugButtons(layout: layout)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 8)
 #endif
                     if let song = store.nowPlaying {
                         AlbumArtworkView(
