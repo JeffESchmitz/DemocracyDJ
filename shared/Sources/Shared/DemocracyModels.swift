@@ -84,17 +84,20 @@ public struct HostSnapshot: Equatable, Codable, Sendable {
     public let isPlaying: Bool
     public let queue: [QueueItem] // Already sorted by votes
     public let connectedPeers: [Peer]
+    public let removedSong: Song? // Transient: set when host removes a song, nil otherwise
 
     public init(
         nowPlaying: Song?,
         queue: [QueueItem],
         connectedPeers: [Peer],
-        isPlaying: Bool = false
+        isPlaying: Bool = false,
+        removedSong: Song? = nil
     ) {
         self.nowPlaying = nowPlaying
         self.isPlaying = isPlaying
         self.queue = queue
         self.connectedPeers = connectedPeers
+        self.removedSong = removedSong
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -102,6 +105,7 @@ public struct HostSnapshot: Equatable, Codable, Sendable {
         case isPlaying
         case queue
         case connectedPeers
+        case removedSong
     }
 
     public init(from decoder: Decoder) throws {
@@ -110,6 +114,7 @@ public struct HostSnapshot: Equatable, Codable, Sendable {
         self.isPlaying = try container.decodeIfPresent(Bool.self, forKey: .isPlaying) ?? false
         self.queue = try container.decode([QueueItem].self, forKey: .queue)
         self.connectedPeers = try container.decode([Peer].self, forKey: .connectedPeers)
+        self.removedSong = try container.decodeIfPresent(Song.self, forKey: .removedSong)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -118,5 +123,6 @@ public struct HostSnapshot: Equatable, Codable, Sendable {
         try container.encode(isPlaying, forKey: .isPlaying)
         try container.encode(queue, forKey: .queue)
         try container.encode(connectedPeers, forKey: .connectedPeers)
+        try container.encodeIfPresent(removedSong, forKey: .removedSong)
     }
 }

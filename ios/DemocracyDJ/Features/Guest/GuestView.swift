@@ -8,37 +8,50 @@ struct GuestView: View {
     @State private var isSuggestSongExpanded = true
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
 #if DEBUG
-            Button("DEBUG: Load Sample Queue") {
-                store.send(.debugLoadSample)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .padding(.top, 8)
+                Button("DEBUG: Load Sample Queue") {
+                    store.send(.debugLoadSample)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+                .padding(.top, 8)
 #endif
 
-            connectionStatusSection
-                .contentShape(Rectangle())
-                .simultaneousGesture(TapGesture().onEnded {
-                    collapseSuggestSong()
-                })
+                connectionStatusSection
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(TapGesture().onEnded {
+                        collapseSuggestSong()
+                    })
 
-            Divider()
+                Divider()
 
-            switch store.connectionStatus {
-            case .disconnected, .browsing, .connecting, .failed:
-                browsingSection
+                switch store.connectionStatus {
+                case .disconnected, .browsing, .connecting, .failed:
+                    browsingSection
 
-            case .connected:
-                connectedSection
+                case .connected:
+                    connectedSection
+                }
+
+                Divider()
+
+                suggestSongSection
             }
+            .background(Color(uiColor: .systemBackground))
 
-            Divider()
-
-            suggestSongSection
+            // Toast overlay
+            if let toast = store.toastQueue.first {
+                ToastView(message: toast.text) {
+                    store.send(._dismissToast(id: toast.id))
+                }
+                .padding(.top, 8)
+                .zIndex(1)
+                .transition(ToastView(message: toast.text) {}.transition)
+                .animation(.easeInOut(duration: 0.3), value: store.toastQueue.first?.id)
+            }
         }
-        .background(Color(uiColor: .systemBackground))
         .sheet(
             isPresented: Binding(
                 get: { store.showSearchSheet },

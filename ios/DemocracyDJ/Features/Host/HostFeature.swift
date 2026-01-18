@@ -21,6 +21,7 @@ struct HostFeature {
         var searchResults: [Song] = []
         var isSearching: Bool = false
         var myPeer: Peer
+        var pendingRemovedSong: Song? // Transient: cleared after broadcast
         @Presents var alert: AlertState<Action.Alert>?
 
         var canPlay: Bool {
@@ -343,11 +344,11 @@ struct HostFeature {
                 guard state.nowPlaying?.id != id else {
                     break
                 }
-                guard state.queue.contains(where: { $0.id == id }) else {
-                    break
+                if let index = state.queue.firstIndex(where: { $0.id == id }) {
+                    let removed = state.queue.remove(at: index)
+                    state.pendingRemovedSong = removed.song
+                    needsBroadcast = true
                 }
-                state.queue.removeAll(where: { $0.id == id })
-                needsBroadcast = true
 
             case let .searchQueryChanged(query):
                 state.searchQuery = query
@@ -552,8 +553,10 @@ struct HostFeature {
                     nowPlaying: state.nowPlaying,
                     queue: state.queue,
                     connectedPeers: state.connectedPeers,
-                    isPlaying: state.isPlaying
+                    isPlaying: state.isPlaying,
+                    removedSong: state.pendingRemovedSong
                 )
+                state.pendingRemovedSong = nil // Clear after capturing in snapshot
                 return .run { _ in
                     do {
                         try await multipeerClient.send(.stateUpdate(snapshot), nil)

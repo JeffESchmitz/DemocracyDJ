@@ -7,6 +7,12 @@ import UIKit
 
 @Reducer
 struct GuestFeature {
+    struct ToastMessage: Equatable, Identifiable {
+        let id: UUID
+        let text: String
+        let songID: String
+    }
+
     @ObservableState
     struct State: Equatable {
         /// Local peer identity owned by this reducer.
@@ -27,6 +33,7 @@ struct GuestFeature {
         var recommendationsError: String?
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
         var lastHostActivityAt: Date?
+        var toastQueue: [ToastMessage] = []
         @Presents var alert: AlertState<Action.Alert>?
 
         enum ConnectionStatus: Equatable {
@@ -73,6 +80,9 @@ struct GuestFeature {
         case _connectionTimeout
         case _checkHostActivity
         case _searchError(String)
+        case _showToast(ToastMessage)
+        case _dismissToast(id: UUID)
+        case _toastTimerFired(id: UUID)
 
 #if DEBUG
         case debugLoadSample
@@ -88,12 +98,13 @@ struct GuestFeature {
     @Dependency(\.uuid) var uuid
     @Dependency(\.openURL) var openURL
 
-    private enum CancelID {
+    private enum CancelID: Hashable {
         case multipeerEvents
         case search
         case recommendations
         case connectionTimeout
         case activityTimeout
+        case toastTimer(UUID)
     }
 
     var body: some ReducerOf<Self> {
@@ -122,6 +133,11 @@ struct GuestFeature {
                 .cancellable(id: CancelID.multipeerEvents, cancelInFlight: true)
 
             case .stopBrowsing:
+                // Cancel all toast timers before clearing the queue
+                let toastCancels = state.toastQueue.map { toast in
+                    Effect<Action>.cancel(id: CancelID.toastTimer(toast.id))
+                }
+
                 state.connectionStatus = .disconnected
                 state.availableHosts.removeAll()
                 state.hostSnapshot = nil
@@ -135,17 +151,20 @@ struct GuestFeature {
                 state.isLoadingRecommendations = false
                 state.recommendationsError = nil
                 state.lastHostActivityAt = nil
+                state.toastQueue = []
                 state.alert = nil
 
                 return .merge(
-                    .run { _ in
-                        await multipeerClient.stop()
-                    },
-                    .cancel(id: CancelID.multipeerEvents),
-                    .cancel(id: CancelID.search),
-                    .cancel(id: CancelID.recommendations),
-                    .cancel(id: CancelID.connectionTimeout),
-                    .cancel(id: CancelID.activityTimeout)
+                    [
+                        .run { _ in
+                            await multipeerClient.stop()
+                        },
+                        .cancel(id: CancelID.multipeerEvents),
+                        .cancel(id: CancelID.search),
+                        .cancel(id: CancelID.recommendations),
+                        .cancel(id: CancelID.connectionTimeout),
+                        .cancel(id: CancelID.activityTimeout)
+                    ] + toastCancels
                 )
 
             case .exitTapped:
@@ -379,6 +398,17 @@ struct GuestFeature {
                 state.hostSnapshot = snapshot
                 state.pendingVotes.removeAll()
                 state.lastHostActivityAt = date.now
+
+                // Handle removed song notification
+                if let removedSong = snapshot.removedSong,
+                   !state.toastQueue.contains(where: { $0.songID == removedSong.id }) {
+                    let toast = ToastMessage(
+                        id: uuid(),
+                        text: "\"\(removedSong.title)\" was removed",
+                        songID: removedSong.id
+                    )
+                    return .send(._showToast(toast))
+                }
                 return .none
 
             case let ._searchError(message):
@@ -440,6 +470,25 @@ struct GuestFeature {
 
             case .alert(.dismiss):
                 state.alert = nil
+                return .none
+
+            // MARK: - Toast
+
+            case let ._showToast(toast):
+                state.toastQueue.append(toast)
+
+                return .run { [clock] send in
+                    try await clock.sleep(for: .seconds(3))
+                    await send(._toastTimerFired(id: toast.id))
+                }
+                .cancellable(id: CancelID.toastTimer(toast.id))
+
+            case let ._dismissToast(id):
+                state.toastQueue.removeAll { $0.id == id }
+                return .cancel(id: CancelID.toastTimer(id))
+
+            case let ._toastTimerFired(id):
+                state.toastQueue.removeAll { $0.id == id }
                 return .none
 
 #if DEBUG
