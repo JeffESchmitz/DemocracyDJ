@@ -9,9 +9,6 @@ struct ToastView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "info.circle.fill")
-                .foregroundStyle(.secondary)
-
             Text(message)
                 .font(.subheadline)
                 .lineLimit(2)
