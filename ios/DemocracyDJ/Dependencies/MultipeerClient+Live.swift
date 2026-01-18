@@ -283,6 +283,7 @@ actor MultipeerActor {
         // Remove from maps if exists (peer lost before connecting)
         if let peer = peerMap.removeValue(forKey: mcPeerID) {
             reversePeerMap.removeValue(forKey: peer.id)
+            emit(.peerLost(peer))
         }
     }
 

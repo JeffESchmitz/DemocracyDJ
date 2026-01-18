@@ -102,6 +102,7 @@ struct GuestFeatureTests {
     @Test func connectToHostInvites() async {
         let host = Peer(id: "host", name: "Host")
         let recorder = InviteRecorder()
+        let clock = TestClock()
 
         let store = TestStore(initialState: GuestFeature.State()) {
             GuestFeature()
@@ -111,6 +112,7 @@ struct GuestFeatureTests {
                     await recorder.record(peer: peer)
                 }
             )
+            $0.continuousClock = clock
         }
 
         await store.send(.connectToHost(host)) {
@@ -120,6 +122,113 @@ struct GuestFeatureTests {
         await recorder.waitForCount(1)
         let last = await recorder.last
         #expect(last == host)
+
+        await store.send(.multipeerEvent(.peerConnected(host))) {
+            $0.connectionStatus = .connected(host: host)
+        }
+
+        await store.finish()
+    }
+
+    @Test func peerLostRemovesFromAvailableHosts() async {
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.multipeerEvent(.peerLost(host))) {
+            $0.availableHosts = []
+        }
+    }
+
+    @Test func peerLostWhileConnectingFailsConnection() async {
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            connectionStatus: .connecting(host: host),
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.multipeerEvent(.peerLost(host))) {
+            $0.availableHosts = []
+            $0.connectionStatus = .failed(reason: "Host no longer available")
+        }
+    }
+
+    @Test func connectionTimeoutRevertsToFailed() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        await clock.advance(by: .seconds(15))
+
+        await store.receive(\._connectionTimeout) {
+            $0.connectionStatus = .failed(reason: "Connection timed out")
+        }
+    }
+
+    @Test func peerConnectedCancelsTimeout() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        await store.send(.multipeerEvent(.peerConnected(host))) {
+            $0.connectionStatus = .connected(host: host)
+            $0.availableHosts = []
+        }
+
+        await clock.advance(by: .seconds(15))
+        await store.finish()
+    }
+
+    @Test func stopBrowsingCancelsConnectionTimeout() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+        }
+
+        await clock.advance(by: .seconds(15))
+        await store.finish()
     }
 
     @Test func exitTappedIsNoOp() async {

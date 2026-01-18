@@ -416,6 +416,9 @@ struct HostFeature {
                         needsBroadcast = true
                     }
 
+                case .peerLost:
+                    break
+
                 case let .messageReceived(message, from: peer):
                     guard case let .intent(intent) = message else {
                         break

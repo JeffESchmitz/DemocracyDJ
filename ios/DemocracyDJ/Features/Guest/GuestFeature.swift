@@ -69,6 +69,7 @@ struct GuestFeature {
         // MARK: - Internal
         case _snapshotReceived(HostSnapshot)
         case _connectionFailed(String)
+        case _connectionTimeout
         case _searchError(String)
 
 #if DEBUG
@@ -87,6 +88,7 @@ struct GuestFeature {
         case multipeerEvents
         case search
         case recommendations
+        case connectionTimeout
     }
 
     var body: some ReducerOf<Self> {
@@ -134,7 +136,8 @@ struct GuestFeature {
                     },
                     .cancel(id: CancelID.multipeerEvents),
                     .cancel(id: CancelID.search),
-                    .cancel(id: CancelID.recommendations)
+                    .cancel(id: CancelID.recommendations),
+                    .cancel(id: CancelID.connectionTimeout)
                 )
 
             case .exitTapped:
@@ -143,16 +146,29 @@ struct GuestFeature {
             case let .connectToHost(host):
                 state.connectionStatus = .connecting(host: host)
 
-                return .run { send in
-                    do {
-                        try await multipeerClient.invite(host)
-                    } catch {
-                        await send(._connectionFailed("Connection failed"))
+                return .merge(
+                    .run { send in
+                        do {
+                            try await multipeerClient.invite(host)
+                        } catch {
+                            await send(._connectionFailed("Connection failed"))
+                        }
+                    },
+                    .run { [clock] send in
+                        try await clock.sleep(for: .seconds(15))
+                        await send(._connectionTimeout)
                     }
-                }
+                    .cancellable(id: CancelID.connectionTimeout, cancelInFlight: true)
+                )
 
             case let ._connectionFailed(reason):
                 state.connectionStatus = .failed(reason: reason)
+                return .cancel(id: CancelID.connectionTimeout)
+
+            case ._connectionTimeout:
+                if case .connecting = state.connectionStatus {
+                    state.connectionStatus = .failed(reason: "Connection timed out")
+                }
                 return .none
 
             // MARK: - User Actions
@@ -311,12 +327,20 @@ struct GuestFeature {
                         state.connectionStatus = .connected(host: peer)
                         state.availableHosts.removeAll()
                     }
-                    return .none
+                    return .cancel(id: CancelID.connectionTimeout)
 
                 case .peerDisconnected:
                     state.connectionStatus = .disconnected
                     state.hostSnapshot = nil
                     state.pendingVotes.removeAll()
+                    return .none
+
+                case let .peerLost(peer):
+                    state.availableHosts.remove(id: peer.id)
+                    if case let .connecting(host) = state.connectionStatus, host.id == peer.id {
+                        state.connectionStatus = .failed(reason: "Host no longer available")
+                        return .cancel(id: CancelID.connectionTimeout)
+                    }
                     return .none
 
                 case let .messageReceived(message, _):

@@ -41,6 +41,9 @@ enum MultipeerEvent: Sendable, Equatable {
     /// A peer disconnected from the session.
     case peerDisconnected(Peer)
 
+    /// A discovered peer was lost before connecting.
+    case peerLost(Peer)
+
     /// A message was received from a connected peer.
     case messageReceived(MeshMessage, from: Peer)
 }
