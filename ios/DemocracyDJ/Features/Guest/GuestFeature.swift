@@ -26,6 +26,7 @@ struct GuestFeature {
         var isLoadingRecommendations: Bool = false
         var recommendationsError: String?
         var musicAuthorizationStatus: MusicAuthorization.Status = .notDetermined
+        var lastHostActivityAt: Date?
         @Presents var alert: AlertState<Action.Alert>?
 
         enum ConnectionStatus: Equatable {
@@ -70,6 +71,7 @@ struct GuestFeature {
         case _snapshotReceived(HostSnapshot)
         case _connectionFailed(String)
         case _connectionTimeout
+        case _checkHostActivity
         case _searchError(String)
 
 #if DEBUG
@@ -81,6 +83,8 @@ struct GuestFeature {
     @Dependency(\.multipeerClient) var multipeerClient
     @Dependency(\.musicKitClient) var musicKitClient
     @Dependency(\.continuousClock) var clock
+    @Dependency(\.guestNetworkingConfig) var networkingConfig
+    @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
     @Dependency(\.openURL) var openURL
 
@@ -89,6 +93,7 @@ struct GuestFeature {
         case search
         case recommendations
         case connectionTimeout
+        case activityTimeout
     }
 
     var body: some ReducerOf<Self> {
@@ -106,6 +111,7 @@ struct GuestFeature {
                 state.availableHosts.removeAll()
                 state.hostSnapshot = nil
                 state.pendingVotes.removeAll()
+                state.lastHostActivityAt = nil
 
                 return .run { send in
                     await multipeerClient.startBrowsing(displayName)
@@ -128,6 +134,7 @@ struct GuestFeature {
                 state.recommendations = []
                 state.isLoadingRecommendations = false
                 state.recommendationsError = nil
+                state.lastHostActivityAt = nil
                 state.alert = nil
 
                 return .merge(
@@ -137,7 +144,8 @@ struct GuestFeature {
                     .cancel(id: CancelID.multipeerEvents),
                     .cancel(id: CancelID.search),
                     .cancel(id: CancelID.recommendations),
-                    .cancel(id: CancelID.connectionTimeout)
+                    .cancel(id: CancelID.connectionTimeout),
+                    .cancel(id: CancelID.activityTimeout)
                 )
 
             case .exitTapped:
@@ -326,14 +334,26 @@ struct GuestFeature {
                     if case .connecting = state.connectionStatus {
                         state.connectionStatus = .connected(host: peer)
                         state.availableHosts.removeAll()
+                        state.lastHostActivityAt = date.now
+                        return .merge(
+                            .cancel(id: CancelID.connectionTimeout),
+                            .run { [clock, networkingConfig] send in
+                                while true {
+                                    try await clock.sleep(for: .seconds(networkingConfig.checkInterval))
+                                    await send(._checkHostActivity)
+                                }
+                            }
+                            .cancellable(id: CancelID.activityTimeout, cancelInFlight: true)
+                        )
                     }
-                    return .cancel(id: CancelID.connectionTimeout)
+                    return .none
 
                 case .peerDisconnected:
                     state.connectionStatus = .disconnected
                     state.hostSnapshot = nil
                     state.pendingVotes.removeAll()
-                    return .none
+                    state.lastHostActivityAt = nil
+                    return .cancel(id: CancelID.activityTimeout)
 
                 case let .peerLost(peer):
                     state.availableHosts.remove(id: peer.id)
@@ -358,11 +378,32 @@ struct GuestFeature {
             case let ._snapshotReceived(snapshot):
                 state.hostSnapshot = snapshot
                 state.pendingVotes.removeAll()
+                state.lastHostActivityAt = date.now
                 return .none
 
             case let ._searchError(message):
                 state.isSearching = false
                 state.searchError = message
+                return .none
+
+            case ._checkHostActivity:
+                guard case .connected = state.connectionStatus else {
+                    return .cancel(id: CancelID.activityTimeout)
+                }
+
+                guard let lastActivity = state.lastHostActivityAt else {
+                    return .none
+                }
+
+                let elapsed = date.now.timeIntervalSince(lastActivity)
+                if elapsed > networkingConfig.inactivityTimeout {
+                    state.connectionStatus = .disconnected
+                    state.hostSnapshot = nil
+                    state.pendingVotes.removeAll()
+                    state.lastHostActivityAt = nil
+                    return .cancel(id: CancelID.activityTimeout)
+                }
+
                 return .none
 
             case let ._authorizationStatusUpdated(status):
