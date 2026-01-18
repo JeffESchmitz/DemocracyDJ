@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import ConcurrencyExtras
 import Foundation
 import Shared
 import Testing
@@ -70,6 +71,8 @@ struct GuestFeatureTests {
     }
 
     @Test func snapshotReceivedClearsPendingVotes() async {
+        let clock = TestClock()
+        let now = LockIsolated(Date(timeIntervalSince1970: 0))
         let snapshot = HostSnapshot(nowPlaying: nil, queue: [], connectedPeers: [])
         let store = TestStore(initialState: GuestFeature.State(
             myPeer: Peer(id: "guest", name: "Guest"),
@@ -77,11 +80,16 @@ struct GuestFeatureTests {
             pendingVotes: ["song-1"]
         )) {
             GuestFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+            $0.date = .init { now.withValue { $0 } }
         }
 
+        let expected = now.withValue { $0 }
         await store.send(GuestFeature.Action._snapshotReceived(snapshot)) {
             $0.hostSnapshot = snapshot
             $0.pendingVotes = []
+            $0.lastHostActivityAt = expected
         }
     }
 
@@ -102,6 +110,7 @@ struct GuestFeatureTests {
     @Test func connectToHostInvites() async {
         let host = Peer(id: "host", name: "Host")
         let recorder = InviteRecorder()
+        let clock = TestClock()
 
         let store = TestStore(initialState: GuestFeature.State()) {
             GuestFeature()
@@ -111,6 +120,7 @@ struct GuestFeatureTests {
                     await recorder.record(peer: peer)
                 }
             )
+            $0.continuousClock = clock
         }
 
         await store.send(.connectToHost(host)) {
@@ -120,6 +130,170 @@ struct GuestFeatureTests {
         await recorder.waitForCount(1)
         let last = await recorder.last
         #expect(last == host)
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+        }
+    }
+
+    @Test func peerLostRemovesFromAvailableHosts() async {
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.multipeerEvent(.peerLost(host))) {
+            $0.availableHosts = []
+        }
+    }
+
+    @Test func peerLostWhileConnectingFailsConnection() async {
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            connectionStatus: .connecting(host: host),
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        }
+
+        await store.send(.multipeerEvent(.peerLost(host))) {
+            $0.availableHosts = []
+            $0.connectionStatus = .failed(reason: "Host no longer available")
+        }
+    }
+
+    @Test func connectionTimeoutRevertsToFailed() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        await clock.advance(by: .seconds(15))
+
+        await store.receive(\._connectionTimeout) {
+            $0.connectionStatus = .failed(reason: "Connection timed out")
+        }
+    }
+
+    @Test func activityTimeoutDisconnectsWhenNoSnapshots() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+        let now = LockIsolated(Date(timeIntervalSince1970: 0))
+        let config = GuestNetworkingConfig(
+            inactivityTimeout: 0.5,
+            checkInterval: 1
+        )
+
+        let store = TestStore(initialState: GuestFeature.State(
+            connectionStatus: .connecting(host: host)
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+            $0.guestNetworkingConfig = config
+            $0.date = .init { now.withValue { $0 } }
+        }
+
+        let expected = now.withValue { $0 }
+        await store.send(.multipeerEvent(.peerConnected(host))) {
+            $0.connectionStatus = .connected(host: host)
+            $0.availableHosts = []
+            $0.lastHostActivityAt = expected
+        }
+
+        now.withValue { $0 = $0.addingTimeInterval(1) }
+        await clock.advance(by: .seconds(1))
+
+        await store.receive(\._checkHostActivity) {
+            $0.connectionStatus = .disconnected
+            $0.hostSnapshot = nil
+            $0.pendingVotes = []
+            $0.lastHostActivityAt = nil
+        }
+    }
+
+    @Test func peerConnectedCancelsTimeout() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+        let now = LockIsolated(Date(timeIntervalSince1970: 0))
+
+        let store = TestStore(initialState: GuestFeature.State(
+            availableHosts: [host]
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+            $0.guestNetworkingConfig = GuestNetworkingConfig(
+                inactivityTimeout: 100,
+                checkInterval: 100
+            )
+            $0.date = .init { now.withValue { $0 } }
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        let expected = now.withValue { $0 }
+        await store.send(.multipeerEvent(.peerConnected(host))) {
+            $0.connectionStatus = .connected(host: host)
+            $0.availableHosts = []
+            $0.lastHostActivityAt = expected
+        }
+
+        await clock.advance(by: .seconds(15))
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+            $0.availableHosts = []
+            $0.hostSnapshot = nil
+            $0.pendingVotes = []
+            $0.showSearchSheet = false
+            $0.searchQuery = ""
+            $0.searchResults = []
+            $0.isSearching = false
+            $0.searchError = nil
+            $0.recommendations = []
+            $0.isLoadingRecommendations = false
+            $0.recommendationsError = nil
+            $0.lastHostActivityAt = nil
+        }
+    }
+
+    @Test func stopBrowsingCancelsConnectionTimeout() async {
+        let clock = TestClock()
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock()
+            $0.continuousClock = clock
+        }
+
+        await store.send(.connectToHost(host)) {
+            $0.connectionStatus = .connecting(host: host)
+        }
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+        }
+
+        await clock.advance(by: .seconds(15))
+        await store.finish()
     }
 
     @Test func exitTappedIsNoOp() async {

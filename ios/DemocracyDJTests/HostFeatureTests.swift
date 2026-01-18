@@ -330,6 +330,7 @@ struct HostFeatureTests {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")
         let recorder = StartRecorder()
+        let clock = TestClock()
         var continuation: AsyncStream<MultipeerEvent>.Continuation?
         let stream = AsyncStream<MultipeerEvent> { streamContinuation in
             continuation = streamContinuation
@@ -353,6 +354,7 @@ struct HostFeatureTests {
             $0.nowPlayingClient = .mock(
                 remoteCommands: { AsyncStream { _ in } }
             )
+            $0.continuousClock = clock
         }
 
         await store.send(.startHosting) {
@@ -395,6 +397,7 @@ struct HostFeatureTests {
     @Test func stopHostingCancelsEventStream() async {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")
+        let clock = TestClock()
         var continuation: AsyncStream<MultipeerEvent>.Continuation?
         let stream = AsyncStream<MultipeerEvent> { streamContinuation in
             continuation = streamContinuation
@@ -410,6 +413,7 @@ struct HostFeatureTests {
             $0.nowPlayingClient = .mock(
                 remoteCommands: { AsyncStream { _ in } }
             )
+            $0.continuousClock = clock
         }
 
         await store.send(.startHosting) {
@@ -428,6 +432,7 @@ struct HostFeatureTests {
     @Test func startHostingTwiceDoesNotDuplicateEvents() async {
         let host = Peer(id: "host", name: "Host")
         let terminationRecorder = HostTerminationRecorder()
+        let clock = TestClock()
         let firstStream = AsyncStream<MultipeerEvent> { continuation in
             continuation.onTermination = { _ in
                 Task {
@@ -448,6 +453,7 @@ struct HostFeatureTests {
             $0.nowPlayingClient = .mock(
                 remoteCommands: { AsyncStream { _ in } }
             )
+            $0.continuousClock = clock
         }
 
         await store.send(.startHosting) {
@@ -476,6 +482,73 @@ struct HostFeatureTests {
             $0.playbackStatus = status
             $0.isPlaying = true
         }
+        await store.receive(._broadcastSnapshot)
+    }
+
+    @Test func heartbeatBroadcastsSnapshotWhenPeersConnected() async {
+        let host = Peer(id: "host", name: "Host")
+        let recorder = SendRecorder()
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            connectedPeers: [Peer(id: "guest", name: "Guest")],
+            isHosting: true
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(onSend: { message, target in
+                await recorder.record(message: message, target: target)
+            })
+        }
+
+        await store.send(._heartbeat)
+        await store.receive(._broadcastSnapshot)
+        await recorder.waitForCount(1)
+
+        let record = await recorder.last
+        #expect(record?.target == nil)
+    }
+
+    @Test func heartbeatSkipsWhenNoPeers() async {
+        let host = Peer(id: "host", name: "Host")
+        let recorder = SendRecorder()
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            connectedPeers: [],
+            isHosting: true
+        )) {
+            HostFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(onSend: { message, target in
+                await recorder.record(message: message, target: target)
+            })
+        }
+
+        await store.send(._heartbeat)
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(await recorder.last == nil)
+    }
+
+    @Test func playbackStatusChangeBroadcastsSnapshot() async {
+        let host = Peer(id: "host", name: "Host")
+        let recorder = SendRecorder()
+
+        let store = TestStore(initialState: HostFeature.State(myPeer: host)) {
+            HostFeature()
+        } withDependencies: {
+            $0.multipeerClient = .mock(onSend: { message, target in
+                await recorder.record(message: message, target: target)
+            })
+        }
+
+        let status = PlaybackStatus(isPlaying: true, currentTime: 30, duration: 180)
+        await store.send(._playbackStatusUpdated(status)) {
+            $0.playbackStatus = status
+            $0.isPlaying = true
+        }
+        await store.receive(._broadcastSnapshot)
+        await recorder.waitForCount(1)
     }
 
     @Test func canPlayRequiresAuthorizationAndSubscription() async {

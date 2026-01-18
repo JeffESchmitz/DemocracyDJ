@@ -194,7 +194,8 @@ struct GuestSearchSheet: View {
                 hostSnapshot: HostSnapshot(
                     nowPlaying: .previewSong,
                     queue: .previewQueue,
-                    connectedPeers: []
+                    connectedPeers: [],
+                    isPlaying: true
                 ),
                 searchQuery: "",
                 recommendations: .previewRecommendations
@@ -224,7 +225,8 @@ struct GuestSearchSheet: View {
     let snapshot = HostSnapshot(
         nowPlaying: .previewSong,
         queue: .previewQueue,
-        connectedPeers: []
+        connectedPeers: [],
+        isPlaying: true
     )
 
     return GuestSearchSheet(

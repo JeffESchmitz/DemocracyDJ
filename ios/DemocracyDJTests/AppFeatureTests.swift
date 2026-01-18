@@ -128,8 +128,11 @@ struct AppFeatureTests {
     }
 
     @Test func hostSelectedTransitions() async {
+        let clock = TestClock()
         let store = TestStore(initialState: AppFeature.State(displayName: "DJ")) {
             AppFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
         }
 
         store.exhaustivity = .off
@@ -189,10 +192,12 @@ struct AppFeatureTests {
     }
 
     @Test func hostSelectedStartsHosting() async {
+        let clock = TestClock()
         let store = TestStore(initialState: AppFeature.State(displayName: "Driver")) {
             AppFeature()
         } withDependencies: {
             $0.multipeerClient = .mock()
+            $0.continuousClock = clock
         }
 
         store.exhaustivity = .off

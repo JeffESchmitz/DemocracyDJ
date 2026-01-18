@@ -82,7 +82,12 @@ import Testing
     }
 
     // Test HostSnapshot
-    let snapshot = HostSnapshot(nowPlaying: song, queue: [queueItem], connectedPeers: [peer])
+    let snapshot = HostSnapshot(
+        nowPlaying: song,
+        queue: [queueItem],
+        connectedPeers: [peer],
+        isPlaying: true
+    )
     let update = MeshMessage.stateUpdate(snapshot)
     let updateData = try JSONEncoder().encode(update)
     let decodedUpdate = try JSONDecoder().decode(MeshMessage.self, from: updateData)
@@ -90,6 +95,7 @@ import Testing
     if case .stateUpdate(let decodedSnapshot) = decodedUpdate {
         #expect(decodedSnapshot.nowPlaying?.title == "Test Song")
         #expect(decodedSnapshot.queue.first?.voteCount == 1)
+        #expect(decodedSnapshot.isPlaying == true)
     } else {
         Issue.record("Expected .stateUpdate")
     }
