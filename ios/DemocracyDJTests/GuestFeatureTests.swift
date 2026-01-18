@@ -637,6 +637,110 @@ struct GuestFeatureTests {
         await clock.advance(by: .milliseconds(300))
         #expect(await recorder.count == 0)
     }
+
+    // MARK: - Toast Tests
+
+    @Test func snapshotWithRemovedSongShowsToast() async {
+        let clock = TestClock()
+        let now = LockIsolated(Date(timeIntervalSince1970: 0))
+        let store = TestStore(initialState: GuestFeature.State(
+            connectionStatus: .connected(host: Peer(id: "host", name: "Host"))
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.uuid = .incrementing
+            $0.continuousClock = clock
+            $0.date = .init { now.withValue { $0 } }
+        }
+
+        let song = Song(id: "song-1", title: "Hotel California", artist: "Eagles", albumArtURL: nil, duration: 200)
+        let snapshot = HostSnapshot(nowPlaying: nil, queue: [], connectedPeers: [], removedSong: song)
+
+        let expected = now.withValue { $0 }
+        await store.send(._snapshotReceived(snapshot)) {
+            $0.hostSnapshot = snapshot
+            $0.lastHostActivityAt = expected
+        }
+
+        await store.receive(\._showToast) {
+            $0.toastQueue = [GuestFeature.ToastMessage(
+                id: UUID(0),
+                text: "\"Hotel California\" was removed",
+                songID: "song-1"
+            )]
+        }
+
+        await store.send(.stopBrowsing) {
+            $0.connectionStatus = .disconnected
+            $0.hostSnapshot = nil
+            $0.toastQueue = []
+            $0.lastHostActivityAt = nil
+        }
+    }
+
+    @Test func toastAutoDismissesAfterDelay() async {
+        let clock = TestClock()
+        let toast = GuestFeature.ToastMessage(id: UUID(0), text: "Test", songID: "1")
+
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+            $0.uuid = .incrementing
+        }
+
+        await store.send(._showToast(toast)) {
+            $0.toastQueue = [toast]
+        }
+
+        await clock.advance(by: .seconds(3))
+
+        await store.receive(\._toastTimerFired) {
+            $0.toastQueue = []
+        }
+    }
+
+    @Test func duplicateSnapshotDoesNotDuplicateToast() async {
+        let now = LockIsolated(Date(timeIntervalSince1970: 0))
+        let song = Song(id: "song-1", title: "Test", artist: "Artist", albumArtURL: nil, duration: 200)
+        let toast = GuestFeature.ToastMessage(id: UUID(0), text: "Test", songID: "song-1")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            connectionStatus: .connected(host: Peer(id: "host", name: "Host")),
+            toastQueue: [toast]
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.date = .init { now.withValue { $0 } }
+        }
+
+        let snapshot = HostSnapshot(nowPlaying: nil, queue: [], connectedPeers: [], removedSong: song)
+
+        let expected = now.withValue { $0 }
+        await store.send(._snapshotReceived(snapshot)) {
+            $0.hostSnapshot = snapshot
+            $0.lastHostActivityAt = expected
+        }
+    }
+
+    @Test func manualDismissCancelsTimer() async {
+        let clock = TestClock()
+        let toast = GuestFeature.ToastMessage(id: UUID(0), text: "Test", songID: "1")
+
+        let store = TestStore(initialState: GuestFeature.State(
+            toastQueue: [toast]
+        )) {
+            GuestFeature()
+        } withDependencies: {
+            $0.continuousClock = clock
+        }
+
+        await store.send(._dismissToast(id: toast.id)) {
+            $0.toastQueue = []
+        }
+
+        await clock.advance(by: .seconds(3))
+    }
 }
 
 actor EventsStreamCounter {

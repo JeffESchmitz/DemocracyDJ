@@ -36,6 +36,7 @@
 		D6A1B2C3D4E5F60718293A4B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A879A8182F083733006E069A /* Assets.xcassets */; };
 		E1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */; };
 		E2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */; };
+		E3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -79,6 +80,7 @@
 		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
 		F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueView.swift; sourceTree = "<group>"; };
 		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
+		F3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MultipeerClient+Live.swift"; sourceTree = "<group>"; };
 		B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestNetworkingConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -147,6 +149,7 @@
 				F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */,
 				F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */,
 				C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */,
+				F3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift */,
 			);
 			path = Guest;
 			sourceTree = "<group>";
@@ -341,6 +344,7 @@
 				A3B4C5D6E7F80123456789AB /* GuestNetworkingConfig.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 				0F1E2D3C4B5A69788796A5B4 /* UserDefaultsClient.swift in Sources */,
+				E3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

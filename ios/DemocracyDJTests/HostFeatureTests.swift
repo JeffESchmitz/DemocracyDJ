@@ -249,8 +249,11 @@ struct HostFeatureTests {
 
         await store.receive(.removeSongFromQueue(id: song.id)) {
             $0.queue = []
+            $0.pendingRemovedSong = song
         }
-        await store.receive(._broadcastSnapshot)
+        await store.receive(._broadcastSnapshot) {
+            $0.pendingRemovedSong = nil
+        }
     }
 
     @Test func removeNonExistentSongIsNoOp() async {
@@ -292,8 +295,11 @@ struct HostFeatureTests {
 
         await store.send(.removeSongFromQueue(id: song.id)) {
             $0.queue = []
+            $0.pendingRemovedSong = song
         }
-        await store.receive(._broadcastSnapshot)
+        await store.receive(._broadcastSnapshot) {
+            $0.pendingRemovedSong = nil
+        }
     }
 
     @Test func broadcastsSnapshotOnPeerConnectedEvenWithoutChange() async {
