@@ -500,7 +500,8 @@ private extension GuestFeature {
                     voters: []
                 )
             ],
-            connectedPeers: [Peer(name: "Alex"), Peer(name: "Sam")]
+            connectedPeers: [Peer(name: "Alex"), Peer(name: "Sam")],
+            isPlaying: true
         )
     }
 }

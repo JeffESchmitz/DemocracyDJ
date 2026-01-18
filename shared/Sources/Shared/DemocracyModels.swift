@@ -81,12 +81,42 @@ public enum GuestIntent: Equatable, Codable, Sendable {
 /// The "Source of Truth" broadcasted by the Host.
 public struct HostSnapshot: Equatable, Codable, Sendable {
     public let nowPlaying: Song?
+    public let isPlaying: Bool
     public let queue: [QueueItem] // Already sorted by votes
     public let connectedPeers: [Peer]
 
-    public init(nowPlaying: Song?, queue: [QueueItem], connectedPeers: [Peer]) {
+    public init(
+        nowPlaying: Song?,
+        queue: [QueueItem],
+        connectedPeers: [Peer],
+        isPlaying: Bool = false
+    ) {
         self.nowPlaying = nowPlaying
+        self.isPlaying = isPlaying
         self.queue = queue
         self.connectedPeers = connectedPeers
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case nowPlaying
+        case isPlaying
+        case queue
+        case connectedPeers
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.nowPlaying = try container.decodeIfPresent(Song.self, forKey: .nowPlaying)
+        self.isPlaying = try container.decodeIfPresent(Bool.self, forKey: .isPlaying) ?? false
+        self.queue = try container.decode([QueueItem].self, forKey: .queue)
+        self.connectedPeers = try container.decode([Peer].self, forKey: .connectedPeers)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(nowPlaying, forKey: .nowPlaying)
+        try container.encode(isPlaying, forKey: .isPlaying)
+        try container.encode(queue, forKey: .queue)
+        try container.encode(connectedPeers, forKey: .connectedPeers)
     }
 }

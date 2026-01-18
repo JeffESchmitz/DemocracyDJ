@@ -161,6 +161,13 @@ struct GuestView: View {
                     Text(song.artist)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    if store.hostSnapshot?.isPlaying == false {
+                        Text("Paused")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             } else {
                 Rectangle()
@@ -342,7 +349,8 @@ struct GuestView: View {
                 voters: ["c"]
             )
         ],
-        connectedPeers: [Peer(name: "Alex"), Peer(name: "Sam")]
+        connectedPeers: [Peer(name: "Alex"), Peer(name: "Sam")],
+        isPlaying: true
     )
 
     GuestView(

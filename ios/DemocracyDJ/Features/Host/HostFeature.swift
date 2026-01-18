@@ -134,6 +134,7 @@ struct HostFeature {
         case _playbackError(String)
         case _searchError(String)
         case _broadcastSnapshot
+        case _heartbeat
         case _remoteCommand(RemoteCommand)
         case _seek(TimeInterval)
 #if DEBUG
@@ -152,6 +153,7 @@ struct HostFeature {
         case playbackStatus
         case search
         case remoteCommands
+        case heartbeat
     }
 
     var body: some ReducerOf<Self> {
@@ -198,6 +200,15 @@ struct HostFeature {
                     .cancellable(id: CancelID.playbackStatus, cancelInFlight: true)
                 )
                 effects.append(
+                    .run { [clock] send in
+                        while true {
+                            try await clock.sleep(for: .seconds(2))
+                            await send(._heartbeat)
+                        }
+                    }
+                    .cancellable(id: CancelID.heartbeat, cancelInFlight: true)
+                )
+                effects.append(
                     .run { send in
                         let status = await musicKitClient.checkSubscription()
                         await send(._subscriptionStatusUpdated(status))
@@ -223,6 +234,7 @@ struct HostFeature {
                 effects.append(.cancel(id: CancelID.multipeerEvents))
                 effects.append(.cancel(id: CancelID.playbackStatus))
                 effects.append(.cancel(id: CancelID.remoteCommands))
+                effects.append(.cancel(id: CancelID.heartbeat))
                 effects.append(
                     .run { _ in
                         await multipeerClient.stop()
@@ -463,7 +475,7 @@ struct HostFeature {
                 state.subscriptionStatus = status
 
             case let ._playbackStatusUpdated(status):
-                let wasPlaying = state.playbackStatus.isPlaying
+                let wasPlaying = state.isPlaying
                 state.playbackStatus = status
                 state.isPlaying = status.isPlaying
                 let nowPlaying = state.nowPlaying
@@ -481,11 +493,17 @@ struct HostFeature {
                     }
                 )
 
-                if wasPlaying,
-                   !status.isPlaying,
-                   status.duration > 0,
-                   status.currentTime >= status.duration - 1,
-                   state.nowPlaying != nil {
+                let didFinishTrack = wasPlaying
+                    && !status.isPlaying
+                    && status.duration > 0
+                    && status.currentTime >= status.duration - 1
+                    && state.nowPlaying != nil
+
+                if state.isPlaying != wasPlaying, !didFinishTrack {
+                    needsBroadcast = true
+                }
+
+                if didFinishTrack {
                     effects.append(.send(.skipTapped))
                 }
 
@@ -533,7 +551,8 @@ struct HostFeature {
                 let snapshot = HostSnapshot(
                     nowPlaying: state.nowPlaying,
                     queue: state.queue,
-                    connectedPeers: state.connectedPeers
+                    connectedPeers: state.connectedPeers,
+                    isPlaying: state.isPlaying
                 )
                 return .run { _ in
                     do {
@@ -542,6 +561,12 @@ struct HostFeature {
                         print("Multipeer send failed: \(error)")
                     }
                 }
+
+            case ._heartbeat:
+                guard state.isHosting, !state.connectedPeers.isEmpty else {
+                    return .none
+                }
+                return .send(._broadcastSnapshot)
 
             case .alert(.presented(.openSettings)):
                 state.alert = nil
