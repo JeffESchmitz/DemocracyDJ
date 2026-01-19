@@ -34,7 +34,7 @@ struct AppView: View {
         }
         .task {
             store.send(.onAppear)
-            try? await Task.sleep(for: .milliseconds(650))
+            try? await Task.sleep(for: TimingConfig.liveValue.splashDelay)
             withAnimation(.easeOut(duration: 0.35)) {
                 showSplash = false
             }

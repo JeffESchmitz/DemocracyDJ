@@ -13,6 +13,12 @@ struct TimingConfig: Sendable {
     var toastDismissal: Duration
     /// Timeout for checking Apple Music subscription status.
     var subscriptionCheckTimeout: Duration
+    /// Timeout for MultipeerConnectivity invitation.
+    var inviteTimeout: TimeInterval
+    /// Delay for splash screen animation.
+    var splashDelay: Duration
+    /// Delay between mock peer connections in preview mode.
+    var previewStreamDelay: Duration
 }
 
 extension TimingConfig: DependencyKey {
@@ -21,7 +27,10 @@ extension TimingConfig: DependencyKey {
         searchDebounce: .milliseconds(300),
         connectionTimeout: .seconds(15),
         toastDismissal: .seconds(3),
-        subscriptionCheckTimeout: .seconds(2)
+        subscriptionCheckTimeout: .seconds(2),
+        inviteTimeout: 30,
+        splashDelay: .milliseconds(650),
+        previewStreamDelay: .milliseconds(100)
     )
 
     static let testValue = TimingConfig(
@@ -29,7 +38,10 @@ extension TimingConfig: DependencyKey {
         searchDebounce: .milliseconds(300),
         connectionTimeout: .seconds(15),
         toastDismissal: .seconds(3),
-        subscriptionCheckTimeout: .seconds(2)
+        subscriptionCheckTimeout: .seconds(2),
+        inviteTimeout: 30,
+        splashDelay: .milliseconds(650),
+        previewStreamDelay: .milliseconds(100)
     )
 
     static let previewValue = TimingConfig(
@@ -37,7 +49,10 @@ extension TimingConfig: DependencyKey {
         searchDebounce: .milliseconds(300),
         connectionTimeout: .seconds(15),
         toastDismissal: .seconds(3),
-        subscriptionCheckTimeout: .seconds(2)
+        subscriptionCheckTimeout: .seconds(2),
+        inviteTimeout: 30,
+        splashDelay: .milliseconds(650),
+        previewStreamDelay: .milliseconds(100)
     )
 }
 

@@ -144,7 +144,7 @@ extension MultipeerClient {
                     Task {
                         for peer in PreviewData.peers {
                             continuation.yield(.peerConnected(peer))
-                            try? await Task.sleep(for: .milliseconds(100))
+                            try? await Task.sleep(for: TimingConfig.previewValue.previewStreamDelay)
                         }
                         // Stream stays open (never finishes)
                     }
