@@ -166,6 +166,16 @@ struct GuestFeatureTests {
         }
     }
 
+    @Test func browserStartFailedShowsFailure() async {
+        let store = TestStore(initialState: GuestFeature.State()) {
+            GuestFeature()
+        }
+
+        await store.send(.multipeerEvent(.startFailed(role: .browser, reason: "No permission"))) {
+            $0.connectionStatus = .failed(reason: "Unable to search: No permission")
+        }
+    }
+
     @Test func connectionTimeoutRevertsToFailed() async {
         let clock = TestClock()
         let host = Peer(id: "host", name: "Host")

@@ -382,6 +382,13 @@ struct GuestFeature {
                     }
                     return .none
 
+                case let .startFailed(role, reason):
+                    guard role == .browser else {
+                        return .none
+                    }
+                    state.connectionStatus = .failed(reason: "Unable to search: \(reason)")
+                    return .none
+
                 case let .messageReceived(message, _):
                     switch message {
                     case let .stateUpdate(snapshot):

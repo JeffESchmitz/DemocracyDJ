@@ -302,10 +302,12 @@ actor MultipeerActor {
 
     func handleBrowserError(_ error: Error) {
         Logger.multipeer.error("Browser error: \(error)")
+        emit(.startFailed(role: .browser, reason: error.localizedDescription))
     }
 
     func handleAdvertiserError(_ error: Error) {
         Logger.multipeer.error("Advertiser error: \(error)")
+        emit(.startFailed(role: .advertiser, reason: error.localizedDescription))
     }
 }
 
