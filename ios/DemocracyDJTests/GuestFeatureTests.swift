@@ -202,10 +202,7 @@ struct GuestFeatureTests {
         let clock = TestClock()
         let host = Peer(id: "host", name: "Host")
         let now = LockIsolated(Date(timeIntervalSince1970: 0))
-        let config = GuestNetworkingConfig(
-            inactivityTimeout: 0.5,
-            checkInterval: 1
-        )
+        let config = TimingConfig.testValue
 
         let store = TestStore(initialState: GuestFeature.State(
             connectionStatus: .connecting(host: host)
@@ -213,7 +210,7 @@ struct GuestFeatureTests {
             GuestFeature()
         } withDependencies: {
             $0.continuousClock = clock
-            $0.guestNetworkingConfig = config
+            $0.timingConfig = config
             $0.date = .init { now.withValue { $0 } }
         }
 
@@ -247,10 +244,10 @@ struct GuestFeatureTests {
         } withDependencies: {
             $0.multipeerClient = .mock()
             $0.continuousClock = clock
-            $0.guestNetworkingConfig = GuestNetworkingConfig(
-                inactivityTimeout: 100,
-                checkInterval: 100
-            )
+            var config = TimingConfig.testValue
+            config.inactivityTimeout = 100
+            config.activityCheckInterval = .seconds(100)
+            $0.timingConfig = config
             $0.date = .init { now.withValue { $0 } }
         }
 

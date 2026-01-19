@@ -93,7 +93,6 @@ struct GuestFeature {
     @Dependency(\.multipeerClient) var multipeerClient
     @Dependency(\.musicKitClient) var musicKitClient
     @Dependency(\.continuousClock) var clock
-    @Dependency(\.guestNetworkingConfig) var networkingConfig
     @Dependency(\.timingConfig) var timingConfig
     @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
@@ -357,9 +356,9 @@ struct GuestFeature {
                         state.lastHostActivityAt = date.now
                         return .merge(
                             .cancel(id: CancelID.connectionTimeout),
-                            .run { [clock, networkingConfig] send in
+                            .run { [clock, timingConfig] send in
                                 while true {
-                                    try await clock.sleep(for: .seconds(networkingConfig.checkInterval))
+                                    try await clock.sleep(for: timingConfig.activityCheckInterval)
                                     await send(._checkHostActivity)
                                 }
                             }
@@ -434,7 +433,7 @@ struct GuestFeature {
                 }
 
                 let elapsed = date.now.timeIntervalSince(lastActivity)
-                if elapsed > networkingConfig.inactivityTimeout {
+                if elapsed > timingConfig.inactivityTimeout {
                     state.connectionStatus = .disconnected
                     state.hostSnapshot = nil
                     state.pendingVotes.removeAll()

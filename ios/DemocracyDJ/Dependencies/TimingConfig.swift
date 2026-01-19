@@ -15,6 +15,10 @@ struct TimingConfig: Sendable {
     var subscriptionCheckTimeout: Duration
     /// Timeout for MultipeerConnectivity invitation.
     var inviteTimeout: TimeInterval
+    /// How long to wait without host activity before assuming disconnected.
+    var inactivityTimeout: TimeInterval
+    /// How often to check for host activity while connected.
+    var activityCheckInterval: Duration
     /// Delay for splash screen animation.
     var splashDelay: Duration
     /// Delay between mock peer connections in preview mode.
@@ -29,6 +33,8 @@ extension TimingConfig: DependencyKey {
         toastDismissal: .seconds(3),
         subscriptionCheckTimeout: .seconds(2),
         inviteTimeout: 30,
+        inactivityTimeout: 5,
+        activityCheckInterval: .seconds(1),
         splashDelay: .milliseconds(650),
         previewStreamDelay: .milliseconds(100)
     )
@@ -40,6 +46,8 @@ extension TimingConfig: DependencyKey {
         toastDismissal: .seconds(3),
         subscriptionCheckTimeout: .seconds(2),
         inviteTimeout: 30,
+        inactivityTimeout: 0.5,
+        activityCheckInterval: .seconds(1),
         splashDelay: .milliseconds(650),
         previewStreamDelay: .milliseconds(100)
     )
@@ -51,6 +59,8 @@ extension TimingConfig: DependencyKey {
         toastDismissal: .seconds(3),
         subscriptionCheckTimeout: .seconds(2),
         inviteTimeout: 30,
+        inactivityTimeout: 3,
+        activityCheckInterval: .seconds(1),
         splashDelay: .milliseconds(650),
         previewStreamDelay: .milliseconds(100)
     )

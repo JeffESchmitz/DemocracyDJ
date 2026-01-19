@@ -27,7 +27,6 @@
 		9ECD6A1784B80F6D08302F70 /* DemocracyDJTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */; };
 		9F8E7D6C5B4A392817161514 /* AppFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3C4D5E6F7081920A1B2C3D /* AppFeatureTests.swift */; };
 		A1B2C3D4E5F60718293A4B5C /* GuestFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0F1A2B3C4D5E6F7081920A /* GuestFeatureTests.swift */; };
-		A3B4C5D6E7F80123456789AB /* GuestNetworkingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */; };
 		B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */; };
 		B4E1B47C2D0D8F5C6B6C3F9A /* HostFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */; };
 		BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */; };
@@ -79,7 +78,6 @@
 		A993AEE5104897B0F2112254 /* DemocracyDJTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemocracyDJTests.swift; sourceTree = "<group>"; };
 		B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumArtworkView.swift; sourceTree = "<group>"; };
 		B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
-		B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestNetworkingConfig.swift; sourceTree = "<group>"; };
 		C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestSearchSheet.swift; sourceTree = "<group>"; };
 		F1A2B3C4D5E60718293A4B5C /* GuestQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueView.swift; sourceTree = "<group>"; };
 		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
@@ -201,7 +199,6 @@
 				9C0D1E2F3A4B5C6D7E8F9A0B /* NowPlayingClient.swift */,
 				82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */,
 				F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */,
-				B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */,
 				6C2F0F8A1A6E4D9FAF0B9D21 /* UserDefaultsClient.swift */,
 				6D39AE9F9896C0F37C806B43 /* TimingConfig.swift */,
 			);
@@ -343,7 +340,6 @@
 				7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */,
 				8B9C0D1E2F3A4B5C6D7E8F9A /* NowPlayingClient.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
-				A3B4C5D6E7F80123456789AB /* GuestNetworkingConfig.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 				0F1E2D3C4B5A69788796A5B4 /* UserDefaultsClient.swift in Sources */,
 				E3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift in Sources */,
