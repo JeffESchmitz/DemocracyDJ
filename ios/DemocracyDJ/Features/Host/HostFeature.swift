@@ -150,6 +150,7 @@ struct HostFeature {
     @Dependency(\.nowPlayingClient) private var nowPlayingClient
     @Dependency(\.continuousClock) private var clock
     @Dependency(\.openURL) private var openURL
+    @Dependency(\.timingConfig) private var timingConfig
 
     private enum CancelID {
         case multipeerEvents
@@ -203,9 +204,9 @@ struct HostFeature {
                     .cancellable(id: CancelID.playbackStatus, cancelInFlight: true)
                 )
                 effects.append(
-                    .run { [clock] send in
+                    .run { [clock, timingConfig] send in
                         while true {
-                            try await clock.sleep(for: .seconds(2))
+                            try await clock.sleep(for: timingConfig.heartbeatInterval)
                             await send(._heartbeat)
                         }
                     }
@@ -363,9 +364,9 @@ struct HostFeature {
 
                 state.isSearching = true
                 effects.append(
-                    .run { send in
+                    .run { [clock, timingConfig] send in
                         do {
-                            try await clock.sleep(for: .milliseconds(300))
+                            try await clock.sleep(for: timingConfig.searchDebounce)
                             let results = try await musicKitClient.search(query)
                             await send(.searchResultsReceived(results))
                         } catch is CancellationError {

@@ -94,6 +94,7 @@ struct GuestFeature {
     @Dependency(\.musicKitClient) var musicKitClient
     @Dependency(\.continuousClock) var clock
     @Dependency(\.guestNetworkingConfig) var networkingConfig
+    @Dependency(\.timingConfig) var timingConfig
     @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
     @Dependency(\.openURL) var openURL
@@ -181,8 +182,8 @@ struct GuestFeature {
                             await send(._connectionFailed("Connection failed"))
                         }
                     },
-                    .run { [clock] send in
-                        try await clock.sleep(for: .seconds(15))
+                    .run { [clock, timingConfig] send in
+                        try await clock.sleep(for: timingConfig.connectionTimeout)
                         await send(._connectionTimeout)
                     }
                     .cancellable(id: CancelID.connectionTimeout, cancelInFlight: true)
@@ -271,9 +272,9 @@ struct GuestFeature {
                 }
 
                 state.isSearching = true
-                return .run { send in
+                return .run { [clock, timingConfig] send in
                     do {
-                        try await clock.sleep(for: .milliseconds(300))
+                        try await clock.sleep(for: timingConfig.searchDebounce)
                         let results = try await musicKitClient.search(query)
                         await send(.searchResultsReceived(results))
                     } catch is CancellationError {
@@ -484,8 +485,8 @@ struct GuestFeature {
             case let ._showToast(toast):
                 state.toastQueue.append(toast)
 
-                return .run { [clock] send in
-                    try await clock.sleep(for: .seconds(3))
+                return .run { [clock, timingConfig] send in
+                    try await clock.sleep(for: timingConfig.toastDismissal)
                     await send(._toastTimerFired(id: toast.id))
                 }
                 .cancellable(id: CancelID.toastTimer(toast.id))
