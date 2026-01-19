@@ -332,6 +332,29 @@ struct HostFeatureTests {
         #expect(record?.target == nil)
     }
 
+    @Test func advertiserStartFailedShowsAlert() async {
+        let host = Peer(id: "host", name: "Host")
+
+        let store = TestStore(initialState: HostFeature.State(
+            myPeer: host,
+            isHosting: true
+        )) {
+            HostFeature()
+        }
+
+        await store.send(.multipeerEvent(.startFailed(role: .advertiser, reason: "Bluetooth off")))
+        await store.receive(._hostingError("Bluetooth off")) {
+            $0.isHosting = false
+            $0.alert = AlertState {
+                TextState("Hosting Error")
+            } actions: {
+                ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+            } message: {
+                TextState("Bluetooth off")
+            }
+        }
+    }
+
     @Test func startHostingSubscribesToEvents() async {
         let host = Peer(id: "host", name: "Host")
         let guest = Peer(id: "guest", name: "Guest")

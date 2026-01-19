@@ -34,6 +34,11 @@ struct MultipeerClient: Sendable {
 /// Events emitted by the multipeer networking layer.
 /// These are the only networking events that TCA reducers see.
 enum MultipeerEvent: Sendable, Equatable {
+    enum Role: Sendable, Equatable {
+        case browser
+        case advertiser
+    }
+
     /// A peer was discovered during browsing (not yet connected).
     case peerDiscovered(Peer)
 
@@ -45,6 +50,9 @@ enum MultipeerEvent: Sendable, Equatable {
 
     /// A discovered peer was lost before connecting.
     case peerLost(Peer)
+
+    /// Failed to start browsing or advertising.
+    case startFailed(role: Role, reason: String)
 
     /// A message was received from a connected peer.
     case messageReceived(MeshMessage, from: Peer)

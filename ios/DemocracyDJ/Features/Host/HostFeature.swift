@@ -139,6 +139,7 @@ struct HostFeature {
         case _heartbeat
         case _remoteCommand(RemoteCommand)
         case _seek(TimeInterval)
+        case _hostingError(String)
 #if DEBUG
         case _debugSetNowPlaying
 #endif
@@ -433,6 +434,12 @@ struct HostFeature {
                 case .peerLost:
                     break
 
+                case let .startFailed(role, reason):
+                    guard role == .advertiser else {
+                        break
+                    }
+                    effects.append(.send(._hostingError(reason)))
+
                 case let .messageReceived(message, from: peer):
                     guard case let .intent(intent) = message else {
                         break
@@ -543,6 +550,16 @@ struct HostFeature {
                 state.isSearching = false
                 state.alert = AlertState {
                     TextState("Search Error")
+                } actions: {
+                    ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
+                } message: {
+                    TextState(message)
+                }
+
+            case let ._hostingError(message):
+                state.isHosting = false
+                state.alert = AlertState {
+                    TextState("Hosting Error")
                 } actions: {
                     ButtonState(role: .cancel, action: .dismiss) { TextState("OK") }
                 } message: {
