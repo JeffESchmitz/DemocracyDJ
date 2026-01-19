@@ -1,6 +1,7 @@
 @preconcurrency import MultipeerConnectivity
 import Dependencies
 import Foundation
+import OSLog
 import Shared
 
 // MARK: - MultipeerError

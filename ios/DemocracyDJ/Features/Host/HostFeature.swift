@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Dependencies
+import OSLog
 import Shared
 import struct MusicKit.MusicAuthorization
 import UIKit
