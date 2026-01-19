@@ -1,6 +1,7 @@
 @preconcurrency import MultipeerConnectivity
 import Dependencies
 import Foundation
+import OSLog
 import Shared
 
 // MARK: - MultipeerError
@@ -51,6 +52,8 @@ actor MultipeerActor {
 
     /// Start advertising as host with the given display name.
     func startHosting(displayName: String) {
+        // Log lifecycle transitions for field diagnostics.
+        Logger.multipeer.info("Start hosting as \(displayName, privacy: .public)")
         isHosting = true
         setupSession(displayName: displayName)
 
@@ -70,6 +73,7 @@ actor MultipeerActor {
 
     /// Start browsing for hosts with the given display name.
     func startBrowsing(displayName: String) {
+        Logger.multipeer.info("Start browsing as \(displayName, privacy: .public)")
         isHosting = false
         setupSession(displayName: displayName)
 
@@ -88,6 +92,7 @@ actor MultipeerActor {
 
     /// Stop all networking activity.
     func stop() {
+        Logger.multipeer.info("Stop multipeer activity")
         // Stop advertiser
         advertiser?.stopAdvertisingPeer()
         advertiser = nil
@@ -258,7 +263,7 @@ actor MultipeerActor {
 
     func handleReceivedData(_ data: Data, from mcPeerID: MCPeerID) {
         guard let peer = peerMap[mcPeerID] else {
-            print("MultipeerActor: Received data from unknown peer")
+            Logger.multipeer.warning("Received data from unknown peer")
             return
         }
 
@@ -266,7 +271,7 @@ actor MultipeerActor {
             let message = try decoder.decode(MeshMessage.self, from: data)
             emit(.messageReceived(message, from: peer))
         } catch {
-            print("MultipeerActor: Failed to decode message: \(error)")
+            Logger.multipeer.error("Failed to decode message: \(error)")
         }
     }
 
@@ -296,11 +301,11 @@ actor MultipeerActor {
     }
 
     func handleBrowserError(_ error: Error) {
-        print("MultipeerActor: Browser error: \(error)")
+        Logger.multipeer.error("Browser error: \(error)")
     }
 
     func handleAdvertiserError(_ error: Error) {
-        print("MultipeerActor: Advertiser error: \(error)")
+        Logger.multipeer.error("Advertiser error: \(error)")
     }
 }
 
