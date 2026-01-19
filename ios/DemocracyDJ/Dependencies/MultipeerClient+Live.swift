@@ -173,7 +173,7 @@ actor MultipeerActor {
             throw MultipeerError.peerNotFound(host.id)
         }
 
-        browser.invitePeer(mcPeerID, to: session, withContext: nil, timeout: 30)
+        browser.invitePeer(mcPeerID, to: session, withContext: nil, timeout: TimingConfig.liveValue.inviteTimeout)
     }
 
     // MARK: - Event Stream

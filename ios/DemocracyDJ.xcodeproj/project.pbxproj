@@ -18,6 +18,7 @@
 		5E6F7081920A1B2C3D4E5F60 /* GuestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B6 /* GuestView.swift */; };
 		6A7B8C9D0E1F2A3B4C5D6E7F /* AppFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2B3C4D5E6F7081920A1B2C /* AppFeature.swift */; };
 		6AA2C7F62E2E3AF4AFB831A1 /* HostFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3D87C2C3A9D6F1D4CE9C5A /* HostFeature.swift */; };
+		718AEF88D876818D94689C87 /* TimingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D39AE9F9896C0F37C806B43 /* TimingConfig.swift */; };
 		7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */; };
 		7BFA88A1A31D80452F444246 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = E129185B905CD5A894646F07 /* ComposableArchitecture */; };
 		7C8D9E0F1A2B3C4D5E6F7081 /* ModeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D5E6F7081920A1B2C3D4E /* ModeSelectionView.swift */; };
@@ -29,7 +30,6 @@
 		B3C4D5E6F7081920A1B2C3D4 /* GuestSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F60718293A4B5C6D7E /* GuestSearchSheet.swift */; };
 		B4E1B47C2D0D8F5C6B6C3F9A /* HostFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D91A4F2B0B2C5F88E0A7D6C /* HostFeatureTests.swift */; };
 		BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */; };
-		A3B4C5D6E7F80123456789AB /* GuestNetworkingConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */; };
 		C1D2E3F405162738495A6B7C /* AlbumArtworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F60718293A4B6C /* AlbumArtworkView.swift */; };
 		C2D3E4F5061728394A5B6C7D /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* PreviewData.swift */; };
 		C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */; };
@@ -66,6 +66,7 @@
 		665D74033AE5AC105B0C44DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		6B7C8D9E0F1A2B3C4D5E6F70 /* MusicKitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicKitClient.swift; sourceTree = "<group>"; };
 		6C2F0F8A1A6E4D9FAF0B9D21 /* UserDefaultsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsClient.swift; sourceTree = "<group>"; };
+		6D39AE9F9896C0F37C806B43 /* TimingConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TimingConfig.swift; path = DemocracyDJ/Dependencies/TimingConfig.swift; sourceTree = SOURCE_ROOT; };
 		7A0B2E4C1F8A4F3D9E6B2C1A /* HostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostView.swift; sourceTree = "<group>"; };
 		7DCF23A7E45285B2398C02A6 /* DemocracyDJ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemocracyDJ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerClient.swift; sourceTree = "<group>"; };
@@ -82,7 +83,6 @@
 		F2A3B4C5D6E708192A3B4C5D /* GuestQueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestQueueItemRow.swift; sourceTree = "<group>"; };
 		F3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MultipeerClient+Live.swift"; sourceTree = "<group>"; };
-		B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestNetworkingConfig.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,8 +199,8 @@
 				9C0D1E2F3A4B5C6D7E8F9A0B /* NowPlayingClient.swift */,
 				82FB9751896C9CA1E6D38FFC /* MultipeerClient.swift */,
 				F5A2CA4BCE543BE2CEEF4F8E /* MultipeerClient+Live.swift */,
-				B4C5D6E7F80123456789ABCD /* GuestNetworkingConfig.swift */,
 				6C2F0F8A1A6E4D9FAF0B9D21 /* UserDefaultsClient.swift */,
+				6D39AE9F9896C0F37C806B43 /* TimingConfig.swift */,
 			);
 			path = Dependencies;
 			sourceTree = "<group>";
@@ -269,8 +269,6 @@
 				E2B43E8273BCD82A17908B76 /* PBXTargetDependency */,
 			);
 			name = DemocracyDJTests;
-			packageProductDependencies = (
-			);
 			productName = DemocracyDJTests;
 			productReference = 415F26E9ED70B4E94A51E291 /* DemocracyDJTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -296,8 +294,9 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				519D3338DDD06D3574FC56C1 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
-				87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "../shared" */,
+				87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "shared" */,
 			);
+			productRefGroup = 674F4BC7FE7B7E3A1D3F554C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -341,10 +340,10 @@
 				7A8B9C0D1E2F3A4B5C6D7E8F /* MusicKitClient.swift in Sources */,
 				8B9C0D1E2F3A4B5C6D7E8F9A /* NowPlayingClient.swift in Sources */,
 				BF16B469E96A34ADD73E97BE /* MultipeerClient+Live.swift in Sources */,
-				A3B4C5D6E7F80123456789AB /* GuestNetworkingConfig.swift in Sources */,
 				C6B272022FC0BF76ECE4BE7D /* MultipeerClient.swift in Sources */,
 				0F1E2D3C4B5A69788796A5B4 /* UserDefaultsClient.swift in Sources */,
 				E3A4B5C6D7E80192A3B4C5D6 /* ToastView.swift in Sources */,
+				718AEF88D876818D94689C87 /* TimingConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -605,7 +604,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "../shared" */ = {
+		87BACAE3CA42FB44FAE202BD /* XCLocalSwiftPackageReference "shared" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ../shared;
 		};

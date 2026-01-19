@@ -239,7 +239,7 @@ extension MusicKitClient {
                         return nil
                     }
                     group.addTask {
-                        try? await Task.sleep(for: .seconds(2))
+                        try? await Task.sleep(for: TimingConfig.liveValue.subscriptionCheckTimeout)
                         return nil
                     }
 
