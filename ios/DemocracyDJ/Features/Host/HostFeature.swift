@@ -561,7 +561,7 @@ struct HostFeature {
                     do {
                         try await multipeerClient.send(.stateUpdate(snapshot), nil)
                     } catch {
-                        print("Multipeer send failed: \(error)")
+                        Logger.host.error("Multipeer send failed: \(error)")
                     }
                 }
 

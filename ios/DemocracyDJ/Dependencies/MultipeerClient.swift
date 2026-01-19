@@ -1,5 +1,7 @@
 import Dependencies
+import Foundation
 import Shared
+import OSLog
 
 // MARK: - MultipeerClient
 
@@ -46,6 +48,16 @@ enum MultipeerEvent: Sendable, Equatable {
 
     /// A message was received from a connected peer.
     case messageReceived(MeshMessage, from: Peer)
+}
+
+// MARK: - Logger
+
+extension Logger {
+    private static let subsystem = Bundle.main.bundleIdentifier ?? "DemocracyDJ"
+
+    static let multipeer = Logger(subsystem: subsystem, category: "multipeer")
+    static let host = Logger(subsystem: subsystem, category: "host")
+    static let guest = Logger(subsystem: subsystem, category: "guest")
 }
 
 // MARK: - DependencyKey
